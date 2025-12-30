@@ -70,6 +70,17 @@ CREATE TABLE PersonalCafeteria (
   turno_fin TIME
 );
 
+-- ventas
+CREATE TABLE Venta (
+  id_venta UUID PRIMARY KEY,
+  id_cafeteria UUID REFERENCES PersonalCafeteria(id_cafeteria),
+  id_producto UUID REFERENCES Producto(id_producto),
+  cantidad INT,
+  total FLOAT,
+  fecha TIMESTAMP,
+  nombre_cliente VARCHAR(100)
+);
+
 -- alimentos con informacion nutricional para el catalogo
 CREATE TABLE Alimento (
   id_alimento UUID PRIMARY KEY,
@@ -131,38 +142,58 @@ CREATE TABLE Sugerencia (
   archivo VARCHAR(255)
 );
 
-CREATE TABLE RecursoEducativo (
+CREATE TABLE Recursos (
   id_recurso UUID PRIMARY KEY,
-  titulo VARCHAR(200),
-  tipo VARCHAR(50),
-  descripcion TEXT
-);
+  titulo VARCHAR(100),
+  tipo enum('infografia', 'video', 'consejo'),
+  descripcion TEXT,
+)
 
-CREATE TABLE Actividad (
-  id_actividad UUID PRIMARY KEY,
-  id_recurso UUID REFERENCES RecursoEducativo(id_recurso),
-  tipo VARCHAR(50),
-  contenido TEXT,
-  orden INT
-);
+CREATE TABLE Infografia (
+  id_recurso UUID PRIMARY KEY REFERENCES Recursos(id_recurso),
+  imagen VARCHAR(255), -- ruta de la imagen
+)
+
+CREATE TABLE Video (
+  id_recurso UUID PRIMARY KEY REFERENCES Recursos(id_recurso),
+  url VARCHAR(255),
+)
+
+CREATE TABLE Consejo (
+  id_recurso UUID PRIMARY KEY REFERENCES Recursos(id_recurso),
+  categoria VARCHAR(50), -- cabiar a enum
+  texto TEXT,
+)
 
 CREATE TABLE ProgresoActividad (
   id_progreso UUID PRIMARY KEY,
   id_usuario UUID REFERENCES Usuario(id_usuario),
-  id_actividad UUID REFERENCES Actividad(id_actividad),
+  id_recurso UUID REFERENCES Recursos(id_recurso),
   completado BOOLEAN,
   fecha TIMESTAMP
 );
 
-CREATE TABLE Encuesta (
-  id_encuesta UUID PRIMARY KEY,
-  preguntas TEXT
-);
+CREATE TABLE Trivia (
+  id_trivia UUID PRIMARY KEY,
+  titulo VARCHAR(100),
+  descripcion TEXT,
+)
 
-CREATE TABLE EncuestaActividad (
-  id_encuesta_actividad UUID PRIMARY KEY,
-  id_encuesta UUID REFERENCES Encuesta(id_encuesta),
+CREATE TABLE Pregunta (
+  id_pregunta UUID PRIMARY KEY,
+  id_trivia UUID REFERENCES Trivia(id_trivia),
+  texto TEXT,
+  opcion_a VARCHAR(255),
+  opcion_b VARCHAR(255),
+  opcion_c VARCHAR(255),
+  opcion_d VARCHAR(255),
+  respuesta_correcta CHAR(1)
+)
+
+CREATE TABLE IntentoEncuesta (
+  id_intento UUID PRIMARY KEY,
   id_usuario UUID REFERENCES Usuario(id_usuario),
+  id_trivia UUID REFERENCES Trivia(id_trivia),
   fecha TIMESTAMP,
-  resultados TEXT
-);
+  puntaje INT
+)
