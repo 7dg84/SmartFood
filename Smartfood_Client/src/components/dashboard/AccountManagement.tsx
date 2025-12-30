@@ -1,6 +1,6 @@
 import { Edit, Trash2, Eye, EyeOff, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { getAllAdmins } from '../../api/admins';
+import { getAllAdmins, createAdmin } from '../../api/admins';
 import { toast } from 'sonner@2.0.3';
 import { useForm } from 'react-hook-form';
 
@@ -29,6 +29,8 @@ export function AccountManagement() {
   const [showPasswordStaff, setShowPasswordStaff] = useState(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
 
+  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+
   const [adminForm, setAdminForm] = useState({
     usuario: '',
     correo: '',
@@ -49,14 +51,15 @@ export function AccountManagement() {
     cedulaB: '',
   });
 
+  async function loadAdmins() {
+    const res = await getAllAdmins()
+    setAdmins(res.data)
+    // console.log(res.data)
+  }
+  
   // Consultar api
   useEffect(() => {
 
-    async function loadAdmins() {
-      const res = await getAllAdmins()
-      setAdmins(res.data)
-      // console.log(res.data)
-    }
 
     loadAdmins();
   }, []);
@@ -69,20 +72,19 @@ export function AccountManagement() {
     { id: 1, nombre: 'junta', correo: 'example@mail.com', turno: '100 - 3:00' },
   ];
 
-  const handleCreateAdmin = () => {
-    if (!adminForm.usuario || !adminForm.correo || !adminForm.contraseña) {
+  const handleCreateAdmin = handleSubmit(async data => {
+    if (!data.nombre || !data.correo || !data.contrasena || !data.telefono) {
       toast.error('Completa todos los campos obligatorios');
       return;
     }
-    if (adminForm.contraseña !== adminForm.repetirContraseña) {
-      toast.error('Las contraseñas no coinciden');
-      return;
-    }
+
+    const res = await createAdmin(data);
+    console.log(res);
     toast.success('Administrador creado exitosamente');
-    console.log(adminForm);
     setShowCreateAdminModal(false);
     resetAdminForm();
-  };
+    loadAdmins();
+  })
 
   const handleCreateStaff = () => {
     if (!staffForm.usuario || !staffForm.correo || !staffForm.contraseña) {
@@ -111,15 +113,7 @@ export function AccountManagement() {
   };
 
   const resetAdminForm = () => {
-    setAdminForm({
-      usuario: '',
-      correo: '',
-      contraseña: '',
-      repetirContraseña: '',
-      telefono: '',
-      codigoCorreo: '',
-      codigoTelefono: '',
-    });
+    reset();
   };
 
   const resetStaffForm = () => {
@@ -281,10 +275,12 @@ export function AccountManagement() {
                   <label className="block mb-2 text-sm">Usuario</label>
                   <input
                     type="text"
-                    value={adminForm.usuario}
-                    onChange={(e) => setAdminForm({ ...adminForm, usuario: e.target.value })}
+                    // value={adminForm.usuario}
+                    // onChange={(e) => setAdminForm({ ...adminForm, usuario: e.target.value })}
+                    {...register('nombre', { required: true })}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
+                  {errors.nombre && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
                 </div>
 
                 <div>
@@ -292,27 +288,31 @@ export function AccountManagement() {
                   <div className="flex gap-2">
                     <input
                       type="email"
-                      value={adminForm.correo}
-                      onChange={(e) => setAdminForm({ ...adminForm, correo: e.target.value })}
+                      // value={adminForm.correo}
+                      // onChange={(e) => setAdminForm({ ...adminForm, correo: e.target.value })}
+                      {...register('correo', { required: true })}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded"
                     />
-                    <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">
+                    {/* <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">
                       Verificar
-                    </button>
+                      </button> */}
                   </div>
+                  {errors.correo && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
                 </div>
 
                 <div>
                   <label className="block mb-2 text-sm">Contraseña</label>
                   <input
                     type="password"
-                    value={adminForm.contraseña}
-                    onChange={(e) => setAdminForm({ ...adminForm, contraseña: e.target.value })}
+                    // value={adminForm.contraseña}
+                    // onChange={(e) => setAdminForm({ ...adminForm, contraseña: e.target.value })}
+                    {...register('contrasena', { required: true })}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
+                  {errors.contrasena && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block mb-2 text-sm">Repetir la Contraseña</label>
                   <input
                     type="password"
@@ -320,24 +320,26 @@ export function AccountManagement() {
                     onChange={(e) => setAdminForm({ ...adminForm, repetirContraseña: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block mb-2 text-sm">Teléfono</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value={adminForm.telefono}
-                      onChange={(e) => setAdminForm({ ...adminForm, telefono: e.target.value })}
+                      // value={adminForm.telefono}
+                      // onChange={(e) => setAdminForm({ ...adminForm, telefono: e.target.value })}
+                      {...register('telefono', { required: true })}
                       className="flex-1 px-4 py-2 border border-gray-300 rounded"
                     />
-                    <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">
+                    {/* <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm">
                       Verificar
-                    </button>
+                      </button> */}
                   </div>
+                  {errors.telefono && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block mb-2 text-sm">Código de Seguridad enviado al correo</label>
                   <input
                     type="text"
@@ -355,7 +357,7 @@ export function AccountManagement() {
                     onChange={(e) => setAdminForm({ ...adminForm, codigoTelefono: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
-                </div>
+                </div> */}
               </div>
 
               <div className="flex justify-end gap-3 mt-8">
