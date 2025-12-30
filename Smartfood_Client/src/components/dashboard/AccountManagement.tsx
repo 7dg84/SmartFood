@@ -1,11 +1,14 @@
 import { Edit, Trash2, Eye, EyeOff, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getAllAdmins } from '../../api/admins';
 import { toast } from 'sonner@2.0.3';
+import { useForm } from 'react-hook-form';
 
 interface Admin {
-  id: number;
+  id_admin: number;
   nombre: string;
   correo: string;
+  contrasena: string;
   telefono: string;
 }
 
@@ -24,6 +27,7 @@ export function AccountManagement() {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [showPasswordAdmin, setShowPasswordAdmin] = useState(false);
   const [showPasswordStaff, setShowPasswordStaff] = useState(false);
+  const [admins, setAdmins] = useState<Admin[]>([]);
 
   const [adminForm, setAdminForm] = useState({
     usuario: '',
@@ -45,9 +49,21 @@ export function AccountManagement() {
     cedulaB: '',
   });
 
-  const admins: Admin[] = [
-    { id: 1, nombre: 'admin1', correo: 'example@mail.com', telefono: '5632284500' },
-  ];
+  // Consultar api
+  useEffect(() => {
+
+    async function loadAdmins() {
+      const res = await getAllAdmins()
+      setAdmins(res.data)
+      // console.log(res.data)
+    }
+
+    loadAdmins();
+  }, []);
+
+  // const admins: Admin[] = [
+  //   { id: 1, nombre: 'admin1', correo: 'example@mail.com', telefono: '5632284500' },
+  // ];
 
   const staff: Staff[] = [
     { id: 1, nombre: 'junta', correo: 'example@mail.com', turno: '100 - 3:00' },
@@ -63,6 +79,7 @@ export function AccountManagement() {
       return;
     }
     toast.success('Administrador creado exitosamente');
+    console.log(adminForm);
     setShowCreateAdminModal(false);
     resetAdminForm();
   };
@@ -170,7 +187,7 @@ export function AccountManagement() {
               </thead>
               <tbody>
                 {admins.map((admin) => (
-                  <tr key={admin.id} className="border-b border-gray-100">
+                  <tr key={admin.id_admin} className="border-b border-gray-100">
                     <td className="py-4 px-2">{admin.nombre}</td>
                     <td className="py-4 px-2">{admin.correo}</td>
                     <td className="py-4 px-2">{admin.telefono}</td>
@@ -257,7 +274,7 @@ export function AccountManagement() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <div className="px-8 py-6">
               <div className="space-y-4">
                 <div>
@@ -269,7 +286,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Correo electrónico</label>
                   <div className="flex gap-2">
@@ -284,7 +301,7 @@ export function AccountManagement() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Contraseña</label>
                   <input
@@ -294,7 +311,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Repetir la Contraseña</label>
                   <input
@@ -304,7 +321,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Teléfono</label>
                   <div className="flex gap-2">
@@ -319,7 +336,7 @@ export function AccountManagement() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Código de Seguridad enviado al correo</label>
                   <input
@@ -329,7 +346,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Código de Seguridad enviado al teléfono</label>
                   <input
@@ -340,7 +357,7 @@ export function AccountManagement() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => setShowCreateAdminModal(false)}
@@ -370,7 +387,7 @@ export function AccountManagement() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <div className="px-8 py-6">
               <div className="space-y-4">
                 <div>
@@ -382,7 +399,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Correo electrónico</label>
                   <input
@@ -392,7 +409,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Contraseña</label>
                   <input
@@ -402,7 +419,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Repetir la Contraseña</label>
                   <input
@@ -412,7 +429,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Turno</label>
                   <input
@@ -422,7 +439,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Cédula</label>
                   <div className="flex gap-2 items-center">
@@ -444,7 +461,7 @@ export function AccountManagement() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => setShowCreateStaffModal(false)}
@@ -474,7 +491,7 @@ export function AccountManagement() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <div className="px-8 py-6">
               <div className="space-y-4">
                 <div>
@@ -486,7 +503,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Correo electrónico</label>
                   <div className="flex gap-2">
@@ -501,7 +518,7 @@ export function AccountManagement() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Contraseña</label>
                   <input
@@ -511,7 +528,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Repetir la Contraseña</label>
                   <input
@@ -521,7 +538,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Teléfono</label>
                   <div className="flex gap-2">
@@ -536,7 +553,7 @@ export function AccountManagement() {
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Código de Seguridad enviado al correo</label>
                   <input
@@ -546,7 +563,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Código de Seguridad enviado al teléfono</label>
                   <input
@@ -557,7 +574,7 @@ export function AccountManagement() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => setShowEditAdminModal(false)}
@@ -587,7 +604,7 @@ export function AccountManagement() {
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <div className="px-8 py-6">
               <div className="space-y-4">
                 <div>
@@ -599,7 +616,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Correo electrónico</label>
                   <input
@@ -609,7 +626,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Contraseña</label>
                   <input
@@ -619,7 +636,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Repetir la Contraseña</label>
                   <input
@@ -629,7 +646,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Turno</label>
                   <input
@@ -639,7 +656,7 @@ export function AccountManagement() {
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block mb-2 text-sm">Cédula</label>
                   <div className="flex gap-2 items-center">
@@ -659,7 +676,7 @@ export function AccountManagement() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => setShowEditStaffModal(false)}
@@ -689,10 +706,10 @@ export function AccountManagement() {
                 Esta acción no se puede deshacer. El usuario será eliminado permanentemente del sistema.
               </p>
             </div>
-            
+
             <div className="space-y-3">
               <p className="text-sm">Escriba los códigos de seguridad:</p>
-              
+
               <div>
                 <label className="block mb-2 text-sm">Código de Seguridad enviado al correo</label>
                 <input
@@ -700,7 +717,7 @@ export function AccountManagement() {
                   className="w-full px-4 py-2 border border-gray-300 rounded"
                 />
               </div>
-              
+
               <div>
                 <label className="block mb-2 text-sm">Código de Seguridad enviado al teléfono</label>
                 <input
@@ -708,7 +725,7 @@ export function AccountManagement() {
                   className="w-full px-4 py-2 border border-gray-300 rounded"
                 />
               </div>
-              
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={() => setShowDeleteConfirmModal(false)}
