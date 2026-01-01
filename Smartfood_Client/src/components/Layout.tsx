@@ -15,6 +15,7 @@ export function Layout({ children }: LayoutProps) {
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [data, setData] = useState('');
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,6 +55,8 @@ export function Layout({ children }: LayoutProps) {
       {showUserModal && (
         <UserModal 
           isLoggedIn={isLoggedIn}
+          data={data}
+          setData={setData}
           onClose={() => setShowUserModal(false)}
           onLogin={() => setIsLoggedIn(true)}
           onLogout={() => setIsLoggedIn(false)}

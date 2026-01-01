@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework.documentation import include_docs_urls
 from rest_framework import routers
 from API import views
@@ -30,4 +30,7 @@ router.register(r'intentos', views.IntentoEncuestaViewSet, basename='intentos')
 urlpatterns = [
     path("v1/", include(router.urls)),
     path('docs/', include_docs_urls(title='SmartFood API')),
+    re_path("v1/login/", views.login, name="login"),
+    re_path("v1/register/", views.register, name="register"),
+    re_path("v1/logout/", views.logout, name="logout"),
 ]

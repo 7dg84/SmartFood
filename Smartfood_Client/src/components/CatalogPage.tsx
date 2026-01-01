@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Heart, Star, Share2, SlidersHorizontal, MessageSquare } from 'lucide-react';
 import { FilterModal } from './FilterModal';
 import { RecommendationModal } from './RecommendationModal';
+import { getAllAliments } from '../api/alimentos'
+import { toast } from 'react-hot-toast';
 
 interface CatalogPageProps {
   onProductClick: (productId: number) => void;
@@ -16,6 +18,8 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  // aliments data
+  const [aliments, setAliments] = useState([]);
 
   const toggleFavorite = (productId: number) => {
     setFavorites(prev => {
@@ -28,6 +32,22 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
       return newFavorites;
     });
   };
+
+  // funcion para cargar alimentos
+  async function loadAliments() {
+    const res = await getAllAliments()
+    if (res.status === 200) {
+      setAliments(res.data)
+      console.log(res.data)
+    } else {
+      toast.error('Error al cargar los alimentos');
+    }
+  }
+
+  // Consultar api
+  useEffect(() => {
+    loadAliments();
+  }, []);
 
   const products = [
     {
@@ -146,92 +166,89 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {products
-            .filter(product => !showOnlyFavorites || favorites.has(product.id))
-            .map((product) => (
-            <div
-              key={product.id}
-              onClick={() => onProductClick(product.id)}
-              className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-            >
-              <div className="p-6">
-                {/* Header with status badge */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-xl mb-2">{product.name}</h3>
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-white text-sm ${
-                        product.statusColor === 'green' ? 'bg-emerald-500' : 'bg-red-500'
-                      }`}
-                    >
-                      {product.status}
-                    </span>
+          {aliments
+            .filter(aliment => !showOnlyFavorites || favorites.has(aliment.id))
+            .map((aliment) => (
+              <div
+                key={aliment.id_alimento}
+                onClick={() => onProductClick(aliment.id_alimento)}
+                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <div className="p-6">
+                  {/* Header with status badge */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl mb-2">{aliment.nombre}</h3>
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-white text-sm ${aliment.permitido ? 'bg-emerald-500' : 'bg-red-500'
+                          }`}
+                      >
+                        {aliment.permitido ? 'Permitido' : 'Prohibido'}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Description */}
-                <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                  {/* Description */}
+                  <p className="text-gray-600 text-sm mb-3">{aliment.descripcion}</p>
 
-                {/* Nutritional Info Box */}
-                <div className="bg-gray-50 border border-gray-200 rounded p-3 mb-4">
-                  <p className="text-sm text-gray-700">
-                    <span className="block mb-1">Información Nutricional:</span>
-                    <span className="text-gray-600">{product.nutritionalInfo}</span>
-                  </p>
-                </div>
+                  {/* Nutritional Info Box */}
+                  <div className="bg-gray-50 border border-gray-200 rounded p-3 mb-4">
+                    <p className="text-sm text-gray-700">
+                      <span className="block mb-1">Información Nutricional:</span>
+                      <span className="text-gray-600">{aliment.informacion_nutricional}</span>
+                    </p>
+                  </div>
 
-                {/* Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(product.id);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <Heart className={`w-5 h-5 ${
-                        favorites.has(product.id) 
-                          ? 'fill-red-500 text-red-500' 
+                  {/* Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(aliment.id_alimento);
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <Heart className={`w-5 h-5 ${favorites.has(aliment.id_alimento)
+                          ? 'fill-red-500 text-red-500'
                           : 'text-gray-600'
-                      }`} />
-                    </button>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-4 h-4 ${
-                          star <= product.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedProduct(product.name);
-                        setShowRecommendationModal(true);
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <MessageSquare className="w-5 h-5 text-gray-600" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                      <Share2 className="w-5 h-5 text-gray-600" />
-                    </button>
+                          }`} />
+                      </button>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-4 h-4 ${star <= aliment.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                            }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProduct(aliment.nombre);
+                          setShowRecommendationModal(true);
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <MessageSquare className="w-5 h-5 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <Share2 className="w-5 h-5 text-gray-600" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
 
-        
+
       </div>
 
       {/* Modals */}

@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Administrador(models.Model):
@@ -92,9 +93,17 @@ class Venta(models.Model):
         return f"Venta {self.id_venta} - {self.id_producto.nombre}"
 
 class Alimento(models.Model):
+    # Diferentes categorias de alimentos
+    class Categoria(models.TextChoices):
+        FRUTAS = 'FRUTAS', _('Frutas')
+        BEBIDAS = 'BEBIDAS', _('Bebidas')
+        LACTEOS = 'LACTEOS', _('Lácteos')
+        SNACKS = 'SNACKS', _('Snacks')
+        
+    
     id_alimento = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     nombre = models.CharField(max_length=100)
-    categoria = models.CharField(max_length=50, blank=True, null=True)
+    categoria = models.CharField(max_length=50, choices=Categoria.choices, blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
     permitido = models.BooleanField(default=True)
     informacion_nutricional = models.TextField(blank=True, null=True)

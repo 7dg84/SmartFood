@@ -15,6 +15,7 @@ import {
   Mantenimiento,
   NotFound,
 } from './pages';
+import { Toaster } from 'react-hot-toast';
 
 export default function App() {
   return (
@@ -29,16 +30,17 @@ export default function App() {
         <Route path="/contenido/:tipo/:id" element={<Layout><ContenidoDetalle /></Layout>} />
         <Route path="/feedback" element={<Layout><Feedback /></Layout>} />
         <Route path="/estadisticas" element={<Layout><Estadisticas /></Layout>} />
-        
+
         {/* Routes without Layout (Full-screen pages) */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tienda" element={<Tienda />} />
         <Route path="/estado" element={<Estado />} />
         <Route path="/mantenimiento" element={<Mantenimiento />} />
-        
+
         {/* 404 - Catch all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Toaster/>
     </Router>
   );
 }

@@ -2,9 +2,12 @@ import { X, User } from 'lucide-react';
 import { useState } from 'react';
 import { LoginModal } from './LoginModal';
 import { RegisterModal } from './RegisterModal';
+import { set } from 'react-hook-form';
 
 interface UserModalProps {
   isLoggedIn: boolean;
+  data: any;
+  setData: (data: []) => void;
   onClose: () => void;
   onLogin: () => void;
   onLogout: () => void;
@@ -12,7 +15,7 @@ interface UserModalProps {
   onOpenShop?: () => void;
 }
 
-export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashboard, onOpenShop }: UserModalProps) {
+export function UserModal({ isLoggedIn, data, setData, onClose, onLogin, onLogout, onOpenDashboard, onOpenShop }: UserModalProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
@@ -24,19 +27,20 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
     setShowRegisterModal(true);
   };
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (data: any) => {
+    setData(data);
     setShowLoginModal(false);
     onLogin();
     onClose();
   };
-  
+
   const handleDashboardClick = () => {
     if (onOpenDashboard) {
       onOpenDashboard();
       onClose();
     }
   };
-  
+
   const handleShopClick = () => {
     if (onOpenShop) {
       onOpenShop();
@@ -93,7 +97,7 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-200 mb-3">
                     <User className="w-8 h-8 text-gray-600" />
                   </div>
-                  <p className="text-gray-700">Nombre de Usuario</p>
+                  <p className="text-gray-700">{ data.user.username ?? 'Usuario' }</p>
                 </div>
                 <button
                   onClick={() => {
@@ -127,11 +131,11 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
       </div>
 
       {showLoginModal && (
-        <LoginModal onClose={() => setShowLoginModal(false)} />
+        <LoginModal onClose={() => setShowLoginModal(false)} onLogin={(data) => handleLoginSuccess(data)} />
       )}
 
       {showRegisterModal && (
-        <RegisterModal 
+        <RegisterModal
           onClose={() => setShowRegisterModal(false)}
           onBackToLogin={() => {
             setShowRegisterModal(false);

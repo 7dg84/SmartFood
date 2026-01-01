@@ -1,8 +1,8 @@
 import { Edit, Trash2, Eye, EyeOff, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getAllAdmins, createAdmin } from '../../api/admins';
-import { toast } from 'sonner@2.0.3';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 
 interface Admin {
   id_admin: number;
@@ -51,12 +51,13 @@ export function AccountManagement() {
     cedulaB: '',
   });
 
+  // Cargar administradores
   async function loadAdmins() {
     const res = await getAllAdmins()
     setAdmins(res.data)
     // console.log(res.data)
   }
-  
+
   // Consultar api
   useEffect(() => {
 

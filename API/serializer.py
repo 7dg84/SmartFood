@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth.models import User
+from rest_framework.validators import UniqueValidator
 
 
 class AdministradorSerializer(serializers.ModelSerializer):
@@ -63,6 +65,16 @@ class UsuarioSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = '__all__'
         read_only_fields = ('id_usuario',)
+        
+class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email')
+        
 
 
 class ConsultaSerializer(serializers.ModelSerializer):

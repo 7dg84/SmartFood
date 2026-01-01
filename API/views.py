@@ -1,7 +1,15 @@
-from django.shortcuts import render
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import status, viewsets
+
 from .serializer import *
 from .models import *
+from rest_framework.authtoken.models import Token
+
+from django.contrib.auth.models import User
 
 # Create viewsets for all models
 
@@ -49,7 +57,48 @@ class AlimentoViewSet(viewsets.ModelViewSet):
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+    
+# Login de usuarios
+@api_view(['POST'])
+def login(request):
+    # Lógica de autenticación aquí
+    
+    user = get_object_or_404(User, email=request.data['email'])
+    
+    if not user.check_password(request.data['password']):
+        return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    token, created = Token.objects.get_or_create(user=user)
+    serilized = UserSerializer(user)
+    
+    return Response({'token': token.key, 'user': serilized.data}, status=status.HTTP_200_OK)
 
+# Registro de usuarios
+@api_view(['POST'])
+def register(request):
+    # Lógica de registro aquí
+    serializer = UserSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        serializer.save()
+
+        user = User.objects.get(username=serializer.data['username'])
+        user.set_password(request.data['password'])
+        user.save()
+        
+        token = Token.objects.create(user=user)
+        return Response({'token': token.key}, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Logout de usuarios
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def logout (request):
+    request.user.auth_token.delete()
+    
+    return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 class ConsultaViewSet(viewsets.ModelViewSet):
     queryset = Consulta.objects.all()
