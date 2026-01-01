@@ -1,9 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 
 from .serializer import *
 from .models import *
@@ -27,6 +29,8 @@ class ReporteViewSet(viewsets.ModelViewSet):
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 class InventarioViewSet(viewsets.ModelViewSet):
@@ -52,6 +56,15 @@ class VentaViewSet(viewsets.ModelViewSet):
 class AlimentoViewSet(viewsets.ModelViewSet):
     queryset = Alimento.objects.all()
     serializer_class = AlimentoSerializer
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['nombre',]
+    filterset_fields = ['categoria', 'permitido']
+    
+    # Permiso de lectura a usuarios no autenticados
+    def get_permissions(self):
+        if self.action in ['list',]:
+            return [AllowAny()]
+        return [IsAuthenticated() and IsAdminUser()]
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -91,13 +104,21 @@ def register(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# Informacion del usuario autenticado
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def user(request):
+    serilized = UserSerializer(request.user)
+    return Response(serilized.data, status=status.HTTP_200_OK)
+
+
 # Logout de usuarios
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def logout (request):
     request.user.auth_token.delete()
-    
     return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 class ConsultaViewSet(viewsets.ModelViewSet):

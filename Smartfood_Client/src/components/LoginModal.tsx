@@ -30,6 +30,7 @@ export function LoginModal({ onClose, onLogin }: LoginModalProps) {
       const res = await login(data); // axios POST
       const token = res.data.token;
       localStorage.setItem('token', token); // solo si no usas HttpOnly cookies
+      localStorage.setItem('username', res.data.user.username);
 
       toast.success('Inicio de sesión correcto');
       onLogin(res.data);

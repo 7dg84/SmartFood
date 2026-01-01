@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Search, Heart, Star, Share2, SlidersHorizontal, MessageSquare } from 'lucide-react';
 import { FilterModal } from './FilterModal';
 import { RecommendationModal } from './RecommendationModal';
-import { getAllAliments } from '../api/alimentos'
+import { getAllAliments, searchAliments } from '../api/alimentos'
 import { toast } from 'react-hot-toast';
+import { set } from 'react-hook-form';
 
 interface CatalogPageProps {
   onProductClick: (productId: number) => void;
@@ -48,6 +49,23 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
   useEffect(() => {
     loadAliments();
   }, []);
+
+  // busqueda
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      (async () => {
+        try {
+          const res = await searchAliments(searchTerm, selectedCategory, selectedStatus);
+          setAliments(res.data);
+        } catch (err) {
+          toast.error('Error al buscar alimentos');
+          console.error(err);
+        }
+      })();
+    }, 500); // espera 500ms después del último cambio
+
+    return () => clearTimeout(handler);
+  }, [searchTerm, selectedCategory, selectedStatus]);
 
   const products = [
     {
@@ -119,8 +137,8 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="all">Todos las categorías</option>
-                <option value="frutas">Frutas</option>
+                <option value="">Todos las categorías</option>
+                <option value="FRUTAS">Frutas</option>
                 <option value="bebidas">Bebidas</option>
                 <option value="lacteos">Lácteos</option>
                 <option value="snacks">Snacks</option>
@@ -134,9 +152,9 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="all">Todos los estados</option>
-                <option value="permitido">Permitido</option>
-                <option value="prohibido">Prohibido</option>
+                <option value="">Todos los estados</option>
+                <option value="true">Permitido</option>
+                <option value="false">Prohibido</option>
               </select>
             </div>
           </div>
@@ -167,7 +185,7 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {aliments
-            .filter(aliment => !showOnlyFavorites || favorites.has(aliment.id))
+            .filter(aliment => !showOnlyFavorites || favorites.has(aliment.id_alimento))
             .map((aliment) => (
               <div
                 key={aliment.id_alimento}
@@ -252,19 +270,23 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
       </div>
 
       {/* Modals */}
-      {showFilterModal && (
-        <FilterModal onClose={() => setShowFilterModal(false)} />
-      )}
+      {
+        showFilterModal && (
+          <FilterModal onClose={() => setShowFilterModal(false)} />
+        )
+      }
 
-      {showRecommendationModal && (
-        <RecommendationModal
-          productName={selectedProduct}
-          onClose={() => {
-            setShowRecommendationModal(false);
-            setSelectedProduct(null);
-          }}
-        />
-      )}
-    </div>
+      {
+        showRecommendationModal && (
+          <RecommendationModal
+            productName={selectedProduct}
+            onClose={() => {
+              setShowRecommendationModal(false);
+              setSelectedProduct(null);
+            }}
+          />
+        )
+      }
+    </div >
   );
 }

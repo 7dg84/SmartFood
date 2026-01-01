@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './Header';
 import { Breadcrumbs } from './Breadcrumbs';
 import { UserModal } from './UserModal';
 import { CatalogModal } from './CatalogModal';
 import { HelpModal } from './HelpModal';
+import { logout } from '../api/user';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,8 +16,14 @@ export function Layout({ children }: LayoutProps) {
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [data, setData] = useState('');
-  
+
+  // al cargar
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-white">
       {!hideHeader && (
         <>
-          <Header 
+          <Header
             onUserClick={() => setShowUserModal(true)}
             onCatalogClick={() => navigate('/catalogo')}
             currentPage={getCurrentPage()}
@@ -48,18 +55,29 @@ export function Layout({ children }: LayoutProps) {
           <Breadcrumbs />
         </>
       )}
-      
+
       {children}
-      
+
       {/* Modals */}
       {showUserModal && (
-        <UserModal 
+        <UserModal
           isLoggedIn={isLoggedIn}
-          data={data}
-          setData={setData}
           onClose={() => setShowUserModal(false)}
           onLogin={() => setIsLoggedIn(true)}
-          onLogout={() => setIsLoggedIn(false)}
+          onLogout={() => {
+            const logoutApi = async () => {
+              try {
+                const token = localStorage.getItem('token');
+                await logout(token);
+                setIsLoggedIn(false)
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+              } catch (error) {
+                console.error('Error during logout:', error);
+              }
+            }
+            logoutApi();
+          }}
           onOpenDashboard={() => {
             setShowUserModal(false);
             navigate('/dashboard');
@@ -70,15 +88,15 @@ export function Layout({ children }: LayoutProps) {
           }}
         />
       )}
-      
+
       {showCatalogModal && (
         <CatalogModal onClose={() => setShowCatalogModal(false)} />
       )}
-      
+
       {showHelpModal && (
         <HelpModal onClose={() => setShowHelpModal(false)} />
       )}
-      
+
       {/* Help button fixed at bottom right - hide on special pages */}
       {!hideHeader && (
         <button

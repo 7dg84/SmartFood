@@ -1,13 +1,11 @@
 import { X, User } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginModal } from './LoginModal';
 import { RegisterModal } from './RegisterModal';
 import { set } from 'react-hook-form';
 
 interface UserModalProps {
   isLoggedIn: boolean;
-  data: any;
-  setData: (data: []) => void;
   onClose: () => void;
   onLogin: () => void;
   onLogout: () => void;
@@ -15,7 +13,7 @@ interface UserModalProps {
   onOpenShop?: () => void;
 }
 
-export function UserModal({ isLoggedIn, data, setData, onClose, onLogin, onLogout, onOpenDashboard, onOpenShop }: UserModalProps) {
+export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashboard, onOpenShop }: UserModalProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
@@ -28,7 +26,6 @@ export function UserModal({ isLoggedIn, data, setData, onClose, onLogin, onLogou
   };
 
   const handleLoginSuccess = (data: any) => {
-    setData(data);
     setShowLoginModal(false);
     onLogin();
     onClose();
@@ -97,7 +94,7 @@ export function UserModal({ isLoggedIn, data, setData, onClose, onLogin, onLogou
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-200 mb-3">
                     <User className="w-8 h-8 text-gray-600" />
                   </div>
-                  <p className="text-gray-700">{ data.user.username ?? 'Usuario' }</p>
+                  <p className="text-gray-700">{ localStorage.getItem('username') ?? 'Usuario' }</p>
                 </div>
                 <button
                   onClick={() => {
