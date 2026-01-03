@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from './config';
 
 const adminsApi = axios.create({
-    baseURL: 'http://127.0.0.1:8000/API/v1/admins/',
+    baseURL: API_BASE_URL + 'admins/',
     headers: {
         'Authorization': `Token ${localStorage.getItem('token')}`
     }

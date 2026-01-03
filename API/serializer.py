@@ -54,10 +54,16 @@ class VentaSerializer(serializers.ModelSerializer):
 
 
 class AlimentoSerializer(serializers.ModelSerializer):
+    favorito = serializers.SerializerMethodField()
+
     class Meta:
         model = Alimento
         fields = '__all__'
         read_only_fields = ('id_alimento',)
+
+    def get_favorito(self, obj):
+        # annotated attribute from queryset; default to False if missing
+        return bool(getattr(obj, 'favorito', False))
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -88,7 +94,7 @@ class FavoritoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorito
         fields = '__all__'
-        read_only_fields = ('id_favorito',)
+        read_only_fields = ('id_favorito', 'id_usuario', 'fecha_transaccion')
 
 
 class CalificacionSerializer(serializers.ModelSerializer):
@@ -102,7 +108,7 @@ class RecomendacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recomendacion
         fields = '__all__'
-        read_only_fields = ('id_recomendacion',)
+        read_only_fields = ('id_recomendacion', 'fecha', 'id_usuario',)
 
 
 class SugerenciaSerializer(serializers.ModelSerializer):

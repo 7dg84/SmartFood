@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
@@ -122,28 +123,29 @@ class Usuario(models.Model):
 
     def __str__(self):
         return self.nombre
+# Use Django's built-in user model (settings.AUTH_USER_MODEL) instead of a local Usuario model
 
 class Consulta(models.Model):
     id_consulta = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='consultas')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='consultas')
     id_alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE, related_name='consultas')
     fecha = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Consulta {self.id_consulta} - {self.id_usuario.nombre}"
+        return f"Consulta {self.id_consulta} - {self.id_usuario}"
 
 class Favorito(models.Model):
     id_favorito = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='favoritos')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favoritos')
     id_alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE, related_name='favoritos')
-    fecha_transaccion = models.DateTimeField(null=True, blank=True)
+    fecha_transaccion = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Favorito {self.id_favorito} - {self.id_usuario.nombre}"
+        return f"Favorito {self.id_favorito} - {self.id_usuario}"
 
 class Calificacion(models.Model):
     id_calificacion = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='calificaciones')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='calificaciones')
     id_alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE, related_name='calificaciones')
     fecha = models.DateTimeField(null=True, blank=True)
     comentario = models.TextField(blank=True, null=True)
@@ -154,23 +156,23 @@ class Calificacion(models.Model):
 
 class Recomendacion(models.Model):
     id_recomendacion = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='recomendaciones')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='recomendaciones')
     id_alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE, related_name='recomendaciones')
-    fecha = models.DateTimeField(null=True, blank=True)
-    motivo = models.TextField(blank=True, null=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    motivo = models.TextField(blank=False)
 
     def __str__(self):
         return f"Recomendacion {self.id_recomendacion}"
 
 class Sugerencia(models.Model):
     id_sugerencia = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='sugerencias')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sugerencias')
     texto = models.TextField()
     fecha = models.DateTimeField(null=True, blank=True)
     archivo = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"Sugerencia {self.id_sugerencia} - {self.id_usuario.nombre}"
+        return f"Sugerencia {self.id_sugerencia} - {self.id_usuario}"
 
 class Recursos(models.Model):
     TIPO_CHOICES = [
@@ -210,13 +212,13 @@ class Consejo(models.Model):
 
 class ProgresoActividad(models.Model):
     id_progreso = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='progresos')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='progresos')
     id_recurso = models.ForeignKey(Recursos, on_delete=models.CASCADE, related_name='progresos')
     completado = models.BooleanField(default=False)
     fecha = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Progreso {self.id_progreso} - {self.id_usuario.nombre}"
+        return f"Progreso {self.id_progreso} - {self.id_usuario}"
 
 class Trivia(models.Model):
     id_trivia = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
@@ -241,7 +243,7 @@ class Pregunta(models.Model):
 
 class IntentoEncuesta(models.Model):
     id_intento = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='intentos')
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='intentos')
     id_trivia = models.ForeignKey(Trivia, on_delete=models.CASCADE, related_name='intentos')
     fecha = models.DateTimeField(null=True, blank=True)
     puntaje = models.IntegerField(null=True, blank=True)

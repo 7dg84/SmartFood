@@ -3,6 +3,7 @@ import { Search, Heart, Star, Share2, SlidersHorizontal, MessageSquare } from 'l
 import { FilterModal } from './FilterModal';
 import { RecommendationModal } from './RecommendationModal';
 import { getAllAliments, searchAliments } from '../api/alimentos'
+import { markAsFavorite, unmarkAsFavorite, getIdByAlimento } from '../api/favoritos';
 import { toast } from 'react-hot-toast';
 import { set } from 'react-hook-form';
 
@@ -16,22 +17,34 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<[] | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
-  const [favorites, setFavorites] = useState<Set<number>>(new Set());
   // aliments data
   const [aliments, setAliments] = useState([]);
 
-  const toggleFavorite = (productId: number) => {
-    setFavorites(prev => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(productId)) {
-        newFavorites.delete(productId);
-      } else {
-        newFavorites.add(productId);
+  const toggleFavorite = async (productId: any) => {
+    if (localStorage.getItem('token') === null) {
+      toast.error('Debes iniciar sesión para marcar favoritos');
+      return;
+    }
+    //  buscar en bd
+    try {
+      const resId = await getIdByAlimento(productId);
+      // si no devuelve nada, marcar como favorito
+      if (resId.data.length === 0) {
+        await markAsFavorite({ id_alimento: productId });
+        toast.success("Alimento marcado como favorito")
       }
-      return newFavorites;
-    });
+      // si se encontro un alimento marcado como favorito por el usuario, desmarcarlo
+      if (resId.data.length > 0) {
+        await unmarkAsFavorite(resId.data[0].id_favorito)
+        toast.success('Alimento desmarcado como favorito');
+      }
+      handlerSearch();
+    } catch (err) {
+      toast.error('Error al realizar operacion ');
+      console.error(err);
+    }
   };
 
   // funcion para cargar alimentos
@@ -39,7 +52,6 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
     const res = await getAllAliments()
     if (res.status === 200) {
       setAliments(res.data)
-      console.log(res.data)
     } else {
       toast.error('Error al cargar los alimentos');
     }
@@ -51,21 +63,21 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
   }, []);
 
   // busqueda
+  async function handlerSearch() {
+    try {
+      const res = await searchAliments(searchTerm, selectedCategory, selectedStatus, showOnlyFavorites);
+      setAliments(res.data);
+    } catch (err) {
+      toast.error('Error al buscar alimentos');
+      console.error(err);
+    }
+  }
   useEffect(() => {
     const handler = setTimeout(() => {
-      (async () => {
-        try {
-          const res = await searchAliments(searchTerm, selectedCategory, selectedStatus);
-          setAliments(res.data);
-        } catch (err) {
-          toast.error('Error al buscar alimentos');
-          console.error(err);
-        }
-      })();
+      handlerSearch();
     }, 500); // espera 500ms después del último cambio
-
     return () => clearTimeout(handler);
-  }, [searchTerm, selectedCategory, selectedStatus]);
+  }, [searchTerm, selectedCategory, selectedStatus, showOnlyFavorites, ]);
 
   const products = [
     {
@@ -185,7 +197,6 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
         {/* Products Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {aliments
-            .filter(aliment => !showOnlyFavorites || favorites.has(aliment.id_alimento))
             .map((aliment) => (
               <div
                 key={aliment.id_alimento}
@@ -227,7 +238,7 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
                         }}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                       >
-                        <Heart className={`w-5 h-5 ${favorites.has(aliment.id_alimento)
+                        <Heart className={`w-5 h-5 ${aliment.favorito
                           ? 'fill-red-500 text-red-500'
                           : 'text-gray-600'
                           }`} />
@@ -244,7 +255,11 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedProduct(aliment.nombre);
+                          if (!localStorage.getItem('token')) {
+                            toast.error('Debes iniciar sesión para solicitar recomendaciones');
+                            return;
+                          }
+                          setSelectedProduct(aliment);
                           setShowRecommendationModal(true);
                         }}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -279,7 +294,7 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
       {
         showRecommendationModal && (
           <RecommendationModal
-            productName={selectedProduct}
+            product={selectedProduct}
             onClose={() => {
               setShowRecommendationModal(false);
               setSelectedProduct(null);

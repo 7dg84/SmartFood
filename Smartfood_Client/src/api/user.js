@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from './config';
 
 const userApi = axios.create({
-    baseURL: 'http://127.0.0.1:8000/API/v1/'
+    baseURL: API_BASE_URL
 })
 
 export const login = (userData) => userApi.post('/login/', userData);

@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser, BasePermission
 from rest_framework.authentication import TokenAuthentication
 from rest_framework import status, viewsets
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
+from django.db.models import Exists, OuterRef, Value, BooleanField
 
 from .serializer import *
 from .models import *
@@ -15,6 +16,9 @@ from django.contrib.auth.models import User
 
 # Create viewsets for all models
 
+class IsOwner(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return getattr(obj, 'id_usuario', None) == request.user
 
 class AdministradorViewSet(viewsets.ModelViewSet):
     queryset = Administrador.objects.all()
@@ -59,12 +63,56 @@ class AlimentoViewSet(viewsets.ModelViewSet):
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['nombre',]
     filterset_fields = ['categoria', 'permitido']
-    
+
     # Permiso de lectura a usuarios no autenticados
     def get_permissions(self):
         if self.action in ['list',]:
             return [AllowAny()]
         return [IsAuthenticated() and IsAdminUser()]
+
+    def get_queryset(self):
+        """Support filtering by ?favorite=true to return only alimentos the
+        requesting user has saved in `Favorito`.
+
+        - ?favorite=true  => return only favorites for authenticated user
+        - ?favorite=false => return only non-favorites for authenticated user
+        If not present, return all alimentos (subject to other filters).
+        If user is not authenticated and favorite=true, return empty queryset.
+        """
+        qs = super().get_queryset()
+        fav = self.request.query_params.get('favorite')
+        user = self.request.user
+        
+        # si no hay filtro de favoritos
+        if fav is None:
+            # Si el usuario no esta autenticado, devolver queryset con valores de favorito en false
+            if not user or not user.is_authenticated:
+                return qs
+            
+            # Si el usuario esta autenticado, devolver el querryset con los favoritos del usuario
+            if user and user.is_authenticated:
+                fav_subquery = Favorito.objects.filter(id_alimento=OuterRef('pk'), id_usuario=user)
+                qs = qs.annotate(favorito=Exists(fav_subquery))
+                print("user authtenticated and no favorite filter returning vaulues with favorite paramm")
+                return qs
+            else:
+                # unauthenticated users: favorite=False
+                return qs.annotate(favorite=Value(False, output_field=BooleanField()))
+
+        fav_val = fav.lower() if fav is not None else None
+
+        # si el usuario esta autenticado, y filtra por favoritos
+        if user and user.is_authenticated and fav_val is not None:
+            fav_subquery = Favorito.objects.filter(id_alimento=OuterRef('pk'), id_usuario=user)
+            qs = qs.annotate(favorito=Exists(fav_subquery))
+            
+            if fav_val in ('1','true','yes'):
+                return qs.filter(favorito=True)
+            if fav_val in ('0','false','no'):
+                return qs.exclude(favorito=True)
+        
+        # Si ninguno de los casos se cumple, devolver todo el queryset, con todos los valores de favoritos en false
+        return qs
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -125,11 +173,25 @@ class ConsultaViewSet(viewsets.ModelViewSet):
     queryset = Consulta.objects.all()
     serializer_class = ConsultaSerializer
 
-
+    
 class FavoritoViewSet(viewsets.ModelViewSet):
-    queryset = Favorito.objects.all()
     serializer_class = FavoritoSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsOwner]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['id_alimento']
+    search_fields = ['id_alimento__nombre']   
 
+    def get_queryset(self):
+        user = self.request.user
+        return Favorito.objects.filter(id_usuario=user)
+
+    def perform_create(self, serializer):
+        # Associate the new favorito with the authenticated user
+        if Favorito.objects.filter(id_usuario=self.request.user, id_alimento=serializer.validated_data['id_alimento']).exists():
+            raise serializers.ValidationError("Este alimento ya está en tus favoritos.")
+        serializer.save(id_usuario=self.request.user)
+        
 
 class CalificacionViewSet(viewsets.ModelViewSet):
     queryset = Calificacion.objects.all()
@@ -139,6 +201,23 @@ class CalificacionViewSet(viewsets.ModelViewSet):
 class RecomendacionViewSet(viewsets.ModelViewSet):
     queryset = Recomendacion.objects.all()
     serializer_class = RecomendacionSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    # Permiso de creacion a usuarios autenticados
+    def get_permissions(self):
+        if self.action in ['create',]:
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return Favorito.objects.filter(id_usuario=user)
+    
+    
+    def perform_create(self, serializer):
+        # Associate the new recomendacion with the authenticated user
+        serializer.save(id_usuario=self.request.user)
 
 
 class SugerenciaViewSet(viewsets.ModelViewSet):
