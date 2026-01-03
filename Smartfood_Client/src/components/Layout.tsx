@@ -5,7 +5,7 @@ import { Breadcrumbs } from './Breadcrumbs';
 import { UserModal } from './UserModal';
 import { CatalogModal } from './CatalogModal';
 import { HelpModal } from './HelpModal';
-import { logout } from '../api/user';
+import { useAuth } from '../context/AuthContext'
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,14 +15,9 @@ export function Layout({ children }: LayoutProps) {
   const [showUserModal, setShowUserModal] = useState(false);
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, logout } = useAuth();
 
-  // al cargar
-  useEffect(() => {
-    if (localStorage.getItem('token')) {
-      setIsLoggedIn(true);
-    }
-  }, []);
+
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,23 +56,8 @@ export function Layout({ children }: LayoutProps) {
       {/* Modals */}
       {showUserModal && (
         <UserModal
-          isLoggedIn={isLoggedIn}
           onClose={() => setShowUserModal(false)}
-          onLogin={() => setIsLoggedIn(true)}
-          onLogout={() => {
-            const logoutApi = async () => {
-              try {
-                const token = localStorage.getItem('token');
-                await logout(token);
-                setIsLoggedIn(false)
-                localStorage.removeItem('token');
-                localStorage.removeItem('username');
-              } catch (error) {
-                console.error('Error during logout:', error);
-              }
-            }
-            logoutApi();
-          }}
+
           onOpenDashboard={() => {
             setShowUserModal(false);
             navigate('/dashboard');

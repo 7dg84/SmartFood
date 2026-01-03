@@ -4,59 +4,30 @@ import { toast } from 'react-hot-toast';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { RegisterModal } from './RegisterModal';
 import { useForm } from 'react-hook-form';
-import { login } from '../api/user';
+import { useAuth } from '../context/AuthContext';
 
 interface LoginModalProps {
   onClose: () => void;
-  onLogin: (data: any) => void;
+  onLogin: () => void;
 }
 
 export function LoginModal({ onClose, onLogin }: LoginModalProps) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { login } = useAuth();
 
   const handleLogin = handleSubmit(async data => {
     if (!data.email || !data.password) {
       toast.error('Completa todos los campos obligatorios');
       return;
     }
-    // console.log(data);
 
-    try {
-      const res = await login(data); // axios POST
-      const token = res.data.token;
-      localStorage.setItem('token', token); // solo si no usas HttpOnly cookies
-      localStorage.setItem('username', res.data.user.username);
-
-      toast.success('Inicio de sesión correcto');
-      onLogin(res.data);
-
-      reset();
-    } catch (err: any) {
-      if (err.response) {
-        const { status, data: respData } = err.response;
-        if (status === 404) toast.error('Usuario no encontrado');
-        else if (status === 401) toast.error('Credenciales incorrectas');
-        else if (status === 400) {
-          // posible objeto de validación: { email: ["..."], password: ["..."] }
-          if (typeof respData === 'object') {
-            const msgs = Object.values(respData).flat().join(' - ');
-            toast.error(msgs || 'Error de validación (400)');
-          } else {
-            toast.error(respData?.message || 'Solicitud inválida (400)');
-          }
-        } else {
-          toast.error(respData?.message || `Error del servidor (${status})`);
-        }
-      } else {
-        toast.error('Error de red o sin respuesta del servidor');
-      }
-      console.error(err);
-    }
+    login(data);
+    onClose(); // cerrar esta ventana
+    onLogin(); // cerrar el UserModal
+    reset();
   })
   const handleForgotPassword = () => {
     setShowForgotPassword(true);

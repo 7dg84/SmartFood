@@ -169,6 +169,13 @@ def logout (request):
     request.user.auth_token.delete()
     return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
+# recuperacion de contraseña
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def recover(request):
+    return Response({'user':request.user})
+
 class ConsultaViewSet(viewsets.ModelViewSet):
     queryset = Consulta.objects.all()
     serializer_class = ConsultaSerializer

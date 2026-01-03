@@ -6,6 +6,7 @@ import { getAllAliments, searchAliments } from '../api/alimentos'
 import { markAsFavorite, unmarkAsFavorite, getIdByAlimento } from '../api/favoritos';
 import { toast } from 'react-hot-toast';
 import { set } from 'react-hook-form';
+import { useAuth } from '../context/AuthContext';
 
 interface CatalogPageProps {
   onProductClick: (productId: number) => void;
@@ -21,6 +22,7 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   // aliments data
   const [aliments, setAliments] = useState([]);
+  const { isLoggedIn } = useAuth();
 
   const toggleFavorite = async (productId: any) => {
     if (localStorage.getItem('token') === null) {
@@ -77,7 +79,7 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
       handlerSearch();
     }, 500); // espera 500ms después del último cambio
     return () => clearTimeout(handler);
-  }, [searchTerm, selectedCategory, selectedStatus, showOnlyFavorites, ]);
+  }, [searchTerm, selectedCategory, selectedStatus, showOnlyFavorites, isLoggedIn]);
 
   const products = [
     {

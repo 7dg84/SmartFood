@@ -3,19 +3,19 @@ import { useState, useEffect } from 'react';
 import { LoginModal } from './LoginModal';
 import { RegisterModal } from './RegisterModal';
 import { set } from 'react-hook-form';
+import { useAuth } from '../context/AuthContext';
 
 interface UserModalProps {
-  isLoggedIn: boolean;
   onClose: () => void;
-  onLogin: () => void;
-  onLogout: () => void;
   onOpenDashboard?: () => void;
   onOpenShop?: () => void;
 }
 
-export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashboard, onOpenShop }: UserModalProps) {
+export function UserModal({ onClose, onOpenDashboard, onOpenShop }: UserModalProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+  const { isLoggedIn, username, logout } = useAuth();
 
   const handleLoginClick = () => {
     setShowLoginModal(true);
@@ -25,9 +25,8 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
     setShowRegisterModal(true);
   };
 
-  const handleLoginSuccess = (data: any) => {
+  const handleLoginSuccess = () => {
     setShowLoginModal(false);
-    onLogin();
     onClose();
   };
 
@@ -94,11 +93,11 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-200 mb-3">
                     <User className="w-8 h-8 text-gray-600" />
                   </div>
-                  <p className="text-gray-700">{ localStorage.getItem('username') ?? 'Usuario' }</p>
+                  <p className="text-gray-700">{username ?? 'Usuario'}</p>
                 </div>
                 <button
                   onClick={() => {
-                    onLogout();
+                    logout();
                     onClose();
                   }}
                   className="w-full px-4 py-3 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
@@ -128,7 +127,7 @@ export function UserModal({ isLoggedIn, onClose, onLogin, onLogout, onOpenDashbo
       </div>
 
       {showLoginModal && (
-        <LoginModal onClose={() => setShowLoginModal(false)} onLogin={(data) => handleLoginSuccess(data)} />
+        <LoginModal onClose={() => setShowLoginModal(false)} onLogin={onClose} />
       )}
 
       {showRegisterModal && (

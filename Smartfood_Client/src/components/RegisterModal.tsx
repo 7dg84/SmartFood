@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../context/AuthContext';
 
 interface RegisterModalProps {
   onClose: () => void;
@@ -8,53 +10,39 @@ interface RegisterModalProps {
 }
 
 export function RegisterModal({ onClose, onBackToLogin }: RegisterModalProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const { register: registerForm, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register } = useAuth();
+
+  const handleSubmitRegister = handleSubmit(async data => {
+
     // Validación de campos vacíos
-    if (!name || !email || !password || !confirmPassword) {
-      toast.error('Error', {
-        description: 'Todos los campos son obligatorios',
-      });
+    if (!data.username || !data.email || !data.password || !data.confirmPassword) {
+      toast.error('Error Todos los campos son obligatorios');
       return;
     }
 
     // Validación de correo electrónico
-    if (!email.includes('@')) {
-      toast.error('Error', {
-        description: 'Correo electrónico inválido',
-      });
+    if (!data.email.includes('@')) {
+      toast.error('Error Correo electrónico inválido');
       return;
     }
 
     // Validación de contraseñas coincidentes
-    if (password !== confirmPassword) {
-      toast.error('Error', {
-        description: 'Las contraseñas no coinciden',
-      });
+    if (data.password !== data.confirmPassword) {
+      toast.error('Error Las contraseñas no coinciden');
       return;
     }
 
     // Validación de longitud de contraseña
-    if (password.length < 6) {
-      toast.error('Error', {
-        description: 'La contraseña debe tener al menos 6 caracteres',
-      });
+    if (data.password.length < 6) {
+      toast.error('Error La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
-    // Aquí iría la lógica de registro real
-    console.log('Register attempt:', { name, email, password });
-    toast.success('Cuenta creada exitosamente', {
-      description: 'Ya puedes iniciar sesión',
-    });
-    onBackToLogin();
-  };
+    if (await register(data)) onBackToLogin();
+
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -67,18 +55,20 @@ export function RegisterModal({ onClose, onBackToLogin }: RegisterModalProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmitRegister}>
             <div className="mb-4">
               <label htmlFor="name" className="block text-gray-700 mb-2">
                 Nombre
               </label>
               <input
-                id="name"
+                id="username"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                // value={name}
+                // onChange={(e) => setName(e.target.value)}
+                {...registerForm('username', { required: true })}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.username && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
             </div>
 
             <div className="mb-4">
@@ -88,10 +78,12 @@ export function RegisterModal({ onClose, onBackToLogin }: RegisterModalProps) {
               <input
                 id="register-email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                // value={email}
+                // onChange={(e) => setEmail(e.target.value)}
+                {...registerForm('email', { required: 'El correo es obligatorio' })}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.email && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
             </div>
 
             <div className="mb-4">
@@ -101,10 +93,12 @@ export function RegisterModal({ onClose, onBackToLogin }: RegisterModalProps) {
               <input
                 id="register-password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                // value={password}
+                // onChange={(e) => setPassword(e.target.value)}
+                {...registerForm('password', { required: 'La contraseña es obligatoria' })}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.password && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
             </div>
 
             <div className="mb-6">
@@ -114,10 +108,12 @@ export function RegisterModal({ onClose, onBackToLogin }: RegisterModalProps) {
               <input
                 id="confirm-password"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                // value={confirmPassword}
+                // onChange={(e) => setConfirmPassword(e.target.value)}
+                {...registerForm('confirmPassword', { required: 'Debe confirmar la contraseña' })}
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.confirmPassword && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
             </div>
 
             <div className="flex items-center justify-between">
