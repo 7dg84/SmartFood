@@ -66,7 +66,7 @@ class AlimentoViewSet(viewsets.ModelViewSet):
 
     # Permiso de lectura a usuarios no autenticados
     def get_permissions(self):
-        if self.action in ['list',]:
+        if self.action in ['list', 'retrieve']:
             return [AllowAny()]
         return [IsAuthenticated() and IsAdminUser()]
 

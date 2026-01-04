@@ -1,6 +1,7 @@
 import { ArrowLeft, Star, MessageSquare } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RecommendationModal } from './RecommendationModal';
+import { getAliment } from '../api/alimentos';
 
 interface ProductDetailPageProps {
   productId: number;
@@ -9,9 +10,21 @@ interface ProductDetailPageProps {
 
 export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps) {
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
+  const [product, setProduct] = useState({});
+
+  const loadData = async () => {
+    const res = await getAliment(productId);
+    setProduct(res.data)
+    console.log(res.data);
+  }
+
+  useEffect(() => {
+    loadData();
+
+  }, [])
 
   // Datos de ejemplo para el producto
-  const product = {
+  const product1 = {
     id: productId,
     name: 'Manzana Roja',
     status: 'Permitido',
@@ -64,11 +77,11 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
               <span className="text-4xl">🍎</span>
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl mb-2">{product.name}</h1>
+              <h1 className="text-2xl mb-2">{product.nombre}</h1>
               <div className="flex items-center gap-3">
-                <span className="text-gray-600">{product.category}</span>
-                <span className="px-3 py-1 bg-green-200 text-green-800 rounded text-sm">
-                  {product.status}
+                <span className="text-gray-600">{product.categoria}</span>
+                <span className={product.permitido ? 'px-3 py-1 bg-green-200 text-green-800 rounded text-sm' : 'px-3 py-1 bg-red-500 text-red-800 rounded text-sm'}>
+                  {product.permitido ? 'Permitido' : 'Prohibido '}
                 </span>
               </div>
             </div>
@@ -85,7 +98,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
           <div className="mb-6">
             <h2 className="text-lg mb-3">Descripción</h2>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque sed diam non dolor viverra luctus. Nulla facilisi. Sed euismod, nisl eget ultricies aliquam, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl. Sed euismod, nisl eget ultricies aliquam, nunc nisl aliquet nunc, vitae aliquam nisl nunc vitae nisl. Donec auctor, nisl eget ultricies aliquam, nunc nisl aliquet nunc.
+              {product.descripcion}
             </p>
           </div>
 
@@ -93,7 +106,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
           <div className="bg-gray-100 border border-gray-300 rounded p-4 mb-4">
             <h3 className="text-sm mb-2">Información Nutricional</h3>
             <p className="text-gray-600 text-sm">
-              Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.
+              {product.informacion_nutricional}
             </p>
           </div>
 
@@ -101,7 +114,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
           <div className="bg-gray-100 border border-gray-300 rounded p-4">
             <h3 className="text-sm mb-2">Sellos</h3>
             <p className="text-gray-600 text-sm">
-              Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.
+              {product.sellos}
             </p>
           </div>
         </div>
@@ -115,9 +128,8 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`w-4 h-4 ${
-                      star <= product.rating ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
-                    }`}
+                    className={`w-4 h-4 ${star <= product.rating ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
+                      }`}
                   />
                 ))}
               </div>
@@ -127,7 +139,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
           </div>
 
           <div className="space-y-6">
-            {product.reviews.map((review) => (
+            {/* {product.reviews.map((review) => (
               <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
@@ -144,9 +156,8 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`w-4 h-4 ${
-                            star <= review.rating ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
-                          }`}
+                          className={`w-4 h-4 ${star <= review.rating ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
+                            }`}
                         />
                       ))}
                     </div>
@@ -164,7 +175,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
                   </div>
                 </div>
               </div>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>

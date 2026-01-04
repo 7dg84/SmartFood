@@ -11,7 +11,7 @@ export function ProductoDetalle() {
 
   return (
     <ProductDetailPage 
-      productId={parseInt(id || '1')} 
+      productId={id} 
       onBack={handleBack}
     />
   );

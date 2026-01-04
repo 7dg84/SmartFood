@@ -39,3 +39,4 @@ export const searchAliments = (nombre, categoria, permitido, favorite) => {
     } : {});
     return res;
 };
+export const getAliment = (id) => alimentApi.get(`/${id}/`)

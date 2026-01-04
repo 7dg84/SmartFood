@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export function Catalogo() {
   const navigate = useNavigate();
 
-  const handleProductClick = (productId: number) => {
+  const handleProductClick = (productId: string) => {
     navigate(`/catalogo/${productId}`);
   };
 
