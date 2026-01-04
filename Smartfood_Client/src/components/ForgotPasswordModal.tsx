@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '../context/AuthContext';
 
 interface ForgotPasswordModalProps {
   onClose: () => void;
@@ -9,35 +11,27 @@ interface ForgotPasswordModalProps {
 
 export function ForgotPasswordModal({ onClose, onBackToLogin }: ForgotPasswordModalProps) {
   const [email, setEmail] = useState('');
+  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { recover } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Simular validación de correo
-    if (!email) {
-      toast.error('Error', {
-        description: 'Por favor ingrese un correo electrónico',
-      });
+  const handleSubmitRecover = handleSubmit(async data => {
+    if (!data.email) {
+      toast.error('Error Por favor ingrese un correo electrónico');
       return;
     }
 
-    // Simular verificación de correo registrado
-    // En un caso real, aquí se verificaría con el backend
-    const isRegistered = email.includes('@'); // Simulación simple
-    
-    if (!isRegistered) {
-      toast.error('Error', {
-        description: 'Correo no registrado',
-      });
+    if (!data.email.includes('@')) {
+      toast.error('Error Correo no valido');
       return;
     }
 
     // Si el correo es válido
-    toast.success('Correo enviado', {
-      description: 'Revisa tu bandeja de entrada para recuperar tu contraseña',
-    });
-    onClose();
-  };
+    if (await recover(data)) {
+      // toast.success('Correo enviado Revisa tu bandeja de entrada para recuperar tu contraseña');
+      onClose();
+    }
+
+  });
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -50,7 +44,7 @@ export function ForgotPasswordModal({ onClose, onBackToLogin }: ForgotPasswordMo
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmitRecover}>
             <div className="mb-6">
               <label htmlFor="recovery-email" className="block text-gray-700 mb-2">
                 Correo electrónico
@@ -58,11 +52,13 @@ export function ForgotPasswordModal({ onClose, onBackToLogin }: ForgotPasswordMo
               <input
                 id="recovery-email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                // value={email}
+                // onChange={(e) => setEmail(e.target.value)}
+                {...register('email', { required: true })}
                 placeholder="mail@example.com"
                 className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
+              {errors.email && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
             </div>
 
             <div className="flex items-center justify-between">

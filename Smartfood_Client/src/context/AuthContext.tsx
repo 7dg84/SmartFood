@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { toast } from 'react-hot-toast';
-import { loginApi, logoutApi, registerApi } from '../api/user'
+import { loginApi, logoutApi, registerApi, recoverApi } from '../api/user'
 
 export const AuthContext = createContext({
     isLoggedIn: false,
@@ -8,7 +8,8 @@ export const AuthContext = createContext({
     user: null as any,
     login: (payload: { email: string, password: any }) => { },
     logout: () => { },
-    register: (payload: { username: string, email: string, password: string }) => { succes: Boolean }
+    register: (payload: { username: string, email: string, password: string }) => { succes: Boolean },
+    recover: (payload: { email: string }) => { succes: Boolean }
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -95,9 +96,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
     }
 
+    const recover = async (data: []) => {
+        try {
+            const res = await recoverApi(data); // axios POST
+
+            toast.success('Correo de recuperacion enviado');
+
+            return true;
+        } catch (err: any) {
+            if (err.response) {
+                const { status, data: respData } = err.response;
+                if (status === 404) toast.error('Usuario no encontrado');
+                else if (status === 401) toast.error('Credenciales incorrectas');
+                else if (status === 400) {
+                    // posible objeto de validación: { email: ["..."], password: ["..."] }
+                    if (typeof respData === 'object') {
+                        const msgs = Object.values(respData).flat().join(' - ');
+                        toast.error(msgs || 'Error de validación (400)');
+                    } else {
+                        toast.error(respData?.message || 'Solicitud inválida (400)');
+                    }
+                } else {
+                    toast.error(respData?.message || `Error del servidor (${status})`);
+                }
+            } else {
+                toast.error('Error de red o sin respuesta del servidor');
+            }
+            console.error(err);
+        }
+        return false;
+    }
 
     return (
-        <AuthContext.Provider value={{ isLoggedIn, token, username, login, logout, register }}>
+        <AuthContext.Provider value={{ isLoggedIn, token, username, login, logout, register, recover }}>
             {children}
         </AuthContext.Provider>
     );

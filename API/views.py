@@ -171,10 +171,11 @@ def logout (request):
 
 # recuperacion de contraseña
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
 def recover(request):
-    return Response({'user':request.user})
+    user = get_object_or_404(User, email=request.data['email'])
+    
+    
+    return Response({'email': user.email}, status=status.HTTP_200_OK)
 
 class ConsultaViewSet(viewsets.ModelViewSet):
     queryset = Consulta.objects.all()

@@ -33,4 +33,5 @@ urlpatterns = [
     re_path("v1/login/", views.login, name="login"),
     re_path("v1/register/", views.register, name="register"),
     re_path("v1/logout/", views.logout, name="logout"),
+    re_path("v1/recover/", views.recover, name="recover"),
 ]
