@@ -1,14 +1,16 @@
 
 services:
-  mysql:
-    image: mysql:latest
-    container_name: mysql-container
+  db:
+    image: postgres:latest
+    # restart: always # Always restart the container if it stops
     environment:
-      MYSQL_ROOT_PASSWORD: 123
-      # MYSQL_DATABASE: my_database # Uncomment to automatically create a database
+      POSTGRES_USER: myuser # Sets the default user
+      POSTGRES_PASSWORD: mysecretpassword # Sets the password for the user
+      POSTGRES_DB: smartfood # Sets a default database name
     ports:
-      - "3306:3306"
+      - "5432:5432" # Maps port 5432 on your host to port 5432 in the container
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql # Persist data to a named volume
+
 volumes:
-  mysql-data:
+  postgres_data:

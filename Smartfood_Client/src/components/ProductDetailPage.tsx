@@ -2,6 +2,7 @@ import { ArrowLeft, Star, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { RecommendationModal } from './RecommendationModal';
 import { getAliment } from '../api/alimentos';
+import { useForm } from 'react-hook-form';
 
 interface ProductDetailPageProps {
   productId: number;
@@ -11,6 +12,11 @@ interface ProductDetailPageProps {
 export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps) {
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
   const [product, setProduct] = useState({});
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewComment, setNewReviewComment] = useState('');
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const { register, handleSubmit, setValue, watch, formState: { errors }, reset, } = useForm();
 
   const loadData = async () => {
     const res = await getAliment(productId);
@@ -22,6 +28,16 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
     loadData();
 
   }, [])
+
+  useEffect(() => {
+    register('valor', { required: true });
+  }, [register]);
+
+  // 
+  const handleSubmitReview = handleSubmit((data) => {
+    console.log(data);
+
+  })
 
   // Datos de ejemplo para el producto
   const product1 = {
@@ -118,6 +134,74 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
             </p>
           </div>
         </div>
+
+        {/* Nueva Calificación Form */}
+        <div className="bg-white border border-gray-300 rounded-lg p-8 mb-6">
+          <h2 className="text-lg mb-4">Escribe tu Calificación</h2>
+          <form onSubmit={handleSubmitReview}>
+            {/* Rating Stars */}
+            <div className="mb-4">
+              <label className="block text-sm mb-2">Tu Calificación</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => {
+                      setNewReviewRating(star)
+                      setValue('valor', star, { shouldValidate: true, shouldDirty: true });
+                    }}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 ${star <= (hoverRating || newReviewRating)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'fill-gray-300 text-gray-300'
+                        }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              {newReviewRating > 0 && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Has seleccionado {newReviewRating} {newReviewRating === 1 ? 'estrella' : 'estrellas'}
+                </p>
+              )}
+            </div>
+            {errors.valor && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
+
+            {/* Comment Textarea */}
+            <div className="mb-4">
+              <label htmlFor="review-comment" className="block text-sm mb-2">
+                Tu Comentario
+              </label>
+              <textarea
+                id="review-comment"
+                // value={newReviewComment}
+                // onChange={(e) => setNewReviewComment(e.target.value)}
+                placeholder="Comparte tu experiencia con este producto..."
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                {...register('comentario', { required: true })}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                { } caracteres
+              </p>
+              {errors.comentario && <span className="text-red-500 text-sm">Este campo es obligatorio</span>}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Publicar Calificación
+            </button>
+          </form>
+        </div>
+
 
         {/* Reviews Section */}
         <div className="bg-white border border-gray-300 rounded-lg p-8">

@@ -66,11 +66,11 @@ class AlimentoSerializer(serializers.ModelSerializer):
         return bool(getattr(obj, 'favorito', False))
 
 
-class UsuarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Usuario
-        fields = '__all__'
-        read_only_fields = ('id_usuario',)
+# class UsuarioSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Usuario
+#         fields = '__all__'
+#         read_only_fields = ('id_usuario',)
         
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(

@@ -115,14 +115,14 @@ class Alimento(models.Model):
     def __str__(self):
         return self.nombre
 
-class Usuario(models.Model):
-    id_usuario = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    nombre = models.CharField(max_length=100)
-    correo = models.EmailField(unique=True)
-    contrasena = models.CharField(max_length=100)
+# class Usuario(models.Model):
+#     id_usuario = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+#     username = models.CharField(max_length=100)
+#     email = models.EmailField(unique=True)
+#     password = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.nombre
+#     def __str__(self):
+#         return self.nombre
 # Use Django's built-in user model (settings.AUTH_USER_MODEL) instead of a local Usuario model
 
 class Consulta(models.Model):

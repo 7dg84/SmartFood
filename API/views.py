@@ -115,9 +115,9 @@ class AlimentoViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class UsuarioViewSet(viewsets.ModelViewSet):
-    queryset = Usuario.objects.all()
-    serializer_class = UsuarioSerializer
+# class UsuarioViewSet(viewsets.ModelViewSet):
+#     queryset = Usuario.objects.all()
+#     serializer_class = UsuarioSerializer
     
 # Login de usuarios
 @api_view(['POST'])
