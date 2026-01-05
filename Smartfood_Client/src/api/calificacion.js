@@ -12,3 +12,4 @@ export const createCalificacion = (data) => calificacionApi.post('/logout/', dat
 });
 // export const loginApi = (userData) => calificacionApi.post('/login/', userData);
 // export const registerApi = (userData) => calificacionApi.post('/register/', userData);
+// export const recoverApi = (emailData) => calificacionApi.post('/recover/', emailData);
