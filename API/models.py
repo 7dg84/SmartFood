@@ -147,9 +147,9 @@ class Calificacion(models.Model):
     id_calificacion = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
     id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='calificaciones')
     id_alimento = models.ForeignKey(Alimento, on_delete=models.CASCADE, related_name='calificaciones')
-    fecha = models.DateTimeField(null=True, blank=True)
-    comentario = models.TextField(blank=True, null=True)
-    valor = models.IntegerField(null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    comentario = models.TextField(blank=False, null=False)
+    valor = models.IntegerField(null=False, blank=False)
 
     def __str__(self):
         return f"Calificacion {self.id_calificacion} - {self.valor}"

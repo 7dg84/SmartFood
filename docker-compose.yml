@@ -1,16 +1,52 @@
-
 services:
   db:
     image: postgres:latest
-    # restart: always # Always restart the container if it stops
+    restart: always # Always restart the container if it stops
     environment:
-      POSTGRES_USER: myuser # Sets the default user
-      POSTGRES_PASSWORD: mysecretpassword # Sets the password for the user
-      POSTGRES_DB: smartfood # Sets a default database name
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "5432:5432" # Maps port 5432 on your host to port 5432 in the container
     volumes:
       - postgres_data:/var/lib/postgresql # Persist data to a named volume
+    env_file:
+      - .env
+
+  API:
+    image: smartfood-api
+    build: .
+    container_name: django-docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+    env_file:
+      - .env
+    volumes:
+      - ./API:/app/API
+      - ./Smartfood_API:/app/Smartfood_API
+
+  Client:
+    image: smartfood-client
+    build: ./Smartfood_Client
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+      - 80:80
 
 volumes:
   postgres_data:

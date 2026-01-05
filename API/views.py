@@ -204,6 +204,24 @@ class FavoritoViewSet(viewsets.ModelViewSet):
 class CalificacionViewSet(viewsets.ModelViewSet):
     queryset = Calificacion.objects.all()
     serializer_class = CalificacionSerializer
+    
+    # Permiso de lectura a usuarios no autenticados
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        
+        if self.action in ['create']:
+            return [IsAuthenticated()]
+        
+        return [IsAuthenticated() and IsAdminUser()]
+    
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     return Favorito.objects.filter(id_usuario=user)
+
+    def perform_create(self, serializer):
+        # Associate the new favorito with the authenticated user
+        serializer.save(id_usuario=self.request.user)
 
 
 class RecomendacionViewSet(viewsets.ModelViewSet):

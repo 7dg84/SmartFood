@@ -102,7 +102,7 @@ class CalificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calificacion
         fields = '__all__'
-        read_only_fields = ('id_calificacion',)
+        read_only_fields = ('id_calificacion', 'id_usuario')
 
 
 class RecomendacionSerializer(serializers.ModelSerializer):
