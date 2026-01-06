@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t
 DEBUG = False
 # DEBUG = bool(os.environ.get("DEBUG", default=0))
  
-ALLOWED_HOSTS = ["https://app.smart-food.cc", "http://npm"]
+ALLOWED_HOSTS = ["https://app.smart-food.cc", "http://npm", "https://api.smart-food.cc/"]
 # ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1").split(",")
 
 
