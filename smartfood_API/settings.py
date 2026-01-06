@@ -21,16 +21,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t'
-# SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+# SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-# DEBUG = bool(os.environ.get("DEBUG", default=0))
+# DEBUG = False
+DEBUG = bool(os.environ.get("DEBUG", default=0))
  
-ALLOWED_HOSTS = ["https://app.smart-food.cc", "http://npm", "https://api.smart-food.cc"]
-# ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1").split(",")
+# ALLOWED_HOSTS = ["app.smart-food.cc", "npm", "api.smart-food.cc"]
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","app.smart-food.cc,npm,api.smart-food.cc,127.0.0.1").split(",")
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -88,8 +89,8 @@ WSGI_APPLICATION = 'smartfood_API.wsgi.application'
 DATABASES = {
     'default': {
          'ENGINE': 'django.db.backends.{}'.format(
-            #  os.getenv('DATABASE_ENGINE', 'sqlite3')
-            'postgresql'
+             os.getenv('DATABASE_ENGINE', 'postgresql')
+            # 'postgresql'
          ),
          'NAME': os.getenv('DATABASE_NAME', 'smartfood'),
          'USER': os.getenv('DATABASE_USERNAME', 'myuser'),
