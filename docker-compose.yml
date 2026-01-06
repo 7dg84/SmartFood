@@ -37,7 +37,7 @@ services:
       - .env
     volumes:
       - ./API:/app/API
-      - ./Smartfood_API:/app/Smartfood_API
+      - ./smartfood_API:/app/Smartfood_API
 
   Client:
     image: smartfood-client
@@ -48,14 +48,14 @@ services:
       - "8080:80"
 
   app:
-    image: 'jc21/nginx-proxy-manager:latest'
+    image: "jc21/nginx-proxy-manager:latest"
     restart: unless-stopped
     environment:
       TZ: "Mexico/Mexico_city"
     ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+      - "80:80"
+      - "81:81"
+      - "443:443"
     volumes:
       - ./npm/data:/data
       - ./npm/letsencrypt:/etc/letsencrypt

@@ -139,6 +139,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:80",
     "http://app:80",
+    "http://api.smart-food.cc/",
     
 ]
 
