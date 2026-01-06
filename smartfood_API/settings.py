@@ -21,15 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t'
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t'
+# SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-DEBUG = bool(os.environ.get("DEBUG", default=0))
+DEBUG = False
+# DEBUG = bool(os.environ.get("DEBUG", default=0))
  
-# ALLOWED_HOSTS = []
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1").split(",")
+ALLOWED_HOSTS = ["https://app.smart-food.cc/", "http://npm"]
+# ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","127.0.0.1").split(",")
 
 
 # Application definition
@@ -88,12 +88,13 @@ WSGI_APPLICATION = 'smartfood_API.wsgi.application'
 DATABASES = {
     'default': {
          'ENGINE': 'django.db.backends.{}'.format(
-             os.getenv('DATABASE_ENGINE', 'sqlite3')
+            #  os.getenv('DATABASE_ENGINE', 'sqlite3')
+            'postgresql'
          ),
-         'NAME': os.getenv('DATABASE_NAME', 'polls'),
-         'USER': os.getenv('DATABASE_USERNAME', 'myprojectuser'),
-         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'password'),
-         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+         'NAME': os.getenv('DATABASE_NAME', 'smartfood'),
+         'USER': os.getenv('DATABASE_USERNAME', 'myuser'),
+         'PASSWORD': os.getenv('DATABASE_PASSWORD', 'mysecretpassword'),
+         'HOST': os.getenv('DATABASE_HOST', 'db'),
          'PORT': os.getenv('DATABASE_PORT', 5432),
      }
 }
@@ -138,8 +139,9 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:80",
-    "http://app:80",
-    "http://api.smart-food.cc/",
+    "http://api.smart-food.cc",
+    "https://app.smart-food.cc/",
+    "http://npm"
     
 ]
 
