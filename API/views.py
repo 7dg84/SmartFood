@@ -195,7 +195,7 @@ class FavoritoViewSet(viewsets.ModelViewSet):
         return Favorito.objects.filter(id_usuario=user)
 
     def perform_create(self, serializer):
-        # Associate the new favorito with the authenticated user
+        # Asociar el nuevo favorito con el usuario autenticado
         if Favorito.objects.filter(id_usuario=self.request.user, id_alimento=serializer.validated_data['id_alimento']).exists():
             raise serializers.ValidationError("Este alimento ya está en tus favoritos.")
         serializer.save(id_usuario=self.request.user)

@@ -17,12 +17,10 @@ export function Layout({ children }: LayoutProps) {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const { isLoggedIn, logout } = useAuth();
 
-
-
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Determine current page based on route
+  // Determinar la pagina actual
   const getCurrentPage = (): 'home' | 'catalog' | 'content' | 'feedback' => {
     if (location.pathname.startsWith('/catalogo')) return 'catalog';
     if (location.pathname.startsWith('/contenido')) return 'content';
@@ -30,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
     return 'home';
   };
 
-  // Don't show header on dashboard, shop, status, and maintenance pages
+  // En estas paginas, no mostrar el header
   const hideHeader = ['/dashboard', '/tienda', '/estado', '/mantenimiento'].some(
     path => location.pathname.startsWith(path)
   );
@@ -80,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Help button fixed at bottom right - hide on special pages */}
       {!hideHeader && (
         <button
-          onClick={() => setShowHelpModal(true)}
+          onClick={() => showHelpModal ? setShowHelpModal(false): setShowHelpModal(true)}
           className="fixed bottom-8 right-8 bg-emerald-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors z-50"
           aria-label="Ayuda"
         >

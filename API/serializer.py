@@ -65,7 +65,7 @@ class AlimentoSerializer(serializers.ModelSerializer):
         # annotated attribute from queryset; default to False if missing
         return bool(getattr(obj, 'favorito', False))
 
-
+# Usamos el modelo de usuarios por defecto de Django el lugar de uno aparte
 # class UsuarioSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Usuario
