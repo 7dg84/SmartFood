@@ -204,6 +204,8 @@ class FavoritoViewSet(viewsets.ModelViewSet):
 class CalificacionViewSet(viewsets.ModelViewSet):
     queryset = Calificacion.objects.all()
     serializer_class = CalificacionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['id_alimento']
     
     # Permiso de lectura a usuarios no autenticados
     def get_permissions(self):
@@ -214,14 +216,19 @@ class CalificacionViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated()]
         
         return [IsAuthenticated() and IsAdminUser()]
-    
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     return Favorito.objects.filter(id_usuario=user)
 
     def perform_create(self, serializer):
         # Associate the new favorito with the authenticated user
         serializer.save(id_usuario=self.request.user)
+
+    def get_queryset(self):
+        """Permite filtrar calificaciones por ?id_alimento=<uuid>"""
+        qs = super().get_queryset()
+        id_alimento = self.request.query_params.get('id_alimento')
+        if id_alimento:
+            # filtrar por la FK `id_alimento` (acepta UUID o PK)
+            return qs.filter(id_alimento__id_alimento=id_alimento) if hasattr(qs.model, 'id_alimento') else qs.filter(id_alimento=id_alimento)
+        return qs
 
 
 class RecomendacionViewSet(viewsets.ModelViewSet):

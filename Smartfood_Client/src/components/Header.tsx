@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { User } from 'lucide-react';
+import { User, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import imgLogo from "../assets/Smartfood.png";
 
@@ -47,7 +47,7 @@ export function Header({ onUserClick, onCatalogClick, currentPage = 'home', onHo
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="flex items-center gap-1">
             <Link
               to="/"
               className={`px-6 py-2 rounded transition-colors ${isActive('home')

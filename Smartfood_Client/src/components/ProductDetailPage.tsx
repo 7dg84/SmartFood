@@ -2,8 +2,10 @@ import { ArrowLeft, Star, MessageSquare } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { RecommendationModal } from './RecommendationModal';
 import { getAliment } from '../api/alimentos';
+import { createCalificacion, getCalificaciones } from '../api/calificacion';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 interface ProductDetailPageProps {
   productId: number;
@@ -12,18 +14,20 @@ interface ProductDetailPageProps {
 
 export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps) {
   const [showRecommendationModal, setShowRecommendationModal] = useState(false);
-  const [product, setProduct] = useState({});
+  const [product, setProduct] = useState([]);
+  const [califications, setCalifications] = useState([]);
   const [newReviewRating, setNewReviewRating] = useState(0);
   const [newReviewComment, setNewReviewComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
 
   const { register, handleSubmit, setValue, watch, formState: { errors }, reset, } = useForm();
 
+  const { isLoggedIn } = useAuth();
+
   const loadData = async () => {
     try {
       const res = await getAliment(productId) // axios POST
       setProduct(res.data)
-      console.log(res.data);
     } catch (err: any) {
       if (err.response) {
         const { status, data: respData } = err.response;
@@ -44,13 +48,42 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
       }
       console.error(err);
     }
+  }
 
+  const loadCalificaciones = async () => {
+    try {
+      const res = await getCalificaciones(productId); // axios POST
+      setCalifications(res.data);
+    } catch (err: any) {
+      if (err.response) {
+        const { status, data: respData } = err.response;
+        if (status === 404) toast.error('Eror 404');
+        else if (status === 401) toast.error('Error 401');
+        else if (status === 400) {
+          if (typeof respData === 'object') {
+            const msgs = Object.values(respData).flat().join(' - ');
+            toast.error(msgs || 'Error de validación (400)');
+          } else {
+            toast.error(respData?.message || 'Solicitud inválida (400)');
+          }
+        } else {
+          toast.error(respData?.message || `Error del servidor (${status})`);
+        }
+      } else {
+        toast.error('Error de red o sin respuesta del servidor');
+      }
+      console.error(err);
+    }
   }
 
   useEffect(() => {
     loadData();
-
+    loadCalificaciones();
   }, [])
+
+  // useEffect(() => {
+  //   loadCalificaciones();
+  // }, [])
 
   useEffect(() => {
     register('valor', { required: true });
@@ -58,12 +91,19 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
 
   // 
   const handleSubmitReview = handleSubmit(async data => {
-    console.log(data);
+    if (!isLoggedIn) {
+      toast.error("Debes iniciar sesion para comentar");
+      return;
+    }
+
+    data["id_alimento"] = productId;
 
     try {
-      const res = await getAliment(productId) // axios POST
-      setProduct(res.data)
-      console.log(res.data);
+      const res = await createCalificacion(data) // axios POST
+      reset();
+      setNewReviewRating(0);
+      toast.success("Calificaion guardada");
+      loadCalificaciones();
     } catch (err: any) {
       if (err.response) {
         const { status, data: respData } = err.response;
@@ -254,7 +294,7 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
         {/* Reviews Section */}
         <div className="bg-white border border-gray-300 rounded-lg p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg">Reseñas</h2>
+            <h2 className="text-lg">Calificaciones</h2>
             <div className="flex items-center gap-2">
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -271,54 +311,56 @@ export function ProductDetailPage({ productId, onBack }: ProductDetailPageProps)
           </div>
 
           <div className="space-y-6">
-            {/* {product.reviews.map((review) => (
-              <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+            {califications.map((review) => (
+              <div key={review.id_calificacion} className="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                      <span className="text-gray-700">{review.initial}</span>
+                      <span className="text-gray-700">{review.username}</span>
                     </div>
                   </div>
                   <div className="flex-1">
                     <div className="mb-2">
                       <p className="font-medium">{review.author}</p>
-                      <p className="text-gray-500 text-sm">{review.date}</p>
+                      <p className="text-gray-500 text-sm">{review.fecha}</p>
                     </div>
                     <div className="flex mb-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`w-4 h-4 ${star <= review.rating ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
+                          className={`w-4 h-4 ${star <= review.valor ? 'fill-black text-black' : 'fill-gray-300 text-gray-300'
                             }`}
                         />
                       ))}
                     </div>
                     <p className="text-gray-600 text-sm mb-3">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin congue erat in lorem ultricies luctus.
+                      {...review.comentario}
                     </p>
                   </div>
-                  <div className="flex-shrink-0">
+                  {/* <div className="flex-shrink-0">
                     <div className="w-32 h-24 bg-white border-2 border-gray-300 flex items-center justify-center relative">
                       <svg className="w-full h-full absolute inset-0" viewBox="0 0 128 96">
                         <line x1="0" y1="0" x2="128" y2="96" stroke="#9CA3AF" strokeWidth="2" />
                         <line x1="128" y1="0" x2="0" y2="96" stroke="#9CA3AF" strokeWidth="2" />
                       </svg>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
-            ))} */}
+            ))}
           </div>
         </div>
       </div>
 
       {/* Recommendation Modal */}
-      {showRecommendationModal && (
-        <RecommendationModal
-          productName={product.name}
-          onClose={() => setShowRecommendationModal(false)}
-        />
-      )}
-    </div>
+      {
+        showRecommendationModal && (
+          <RecommendationModal
+            product={product}
+            onClose={() => setShowRecommendationModal(false)}
+          />
+        )
+      }
+    </div >
   );
 }

@@ -78,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Help button fixed at bottom right - hide on special pages */}
       {!hideHeader && (
         <button
-          onClick={() => showHelpModal ? setShowHelpModal(false): setShowHelpModal(true)}
+          onClick={() => setShowHelpModal(!showHelpModal)}
           className="fixed bottom-8 right-8 bg-emerald-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors z-50"
           aria-label="Ayuda"
         >

@@ -99,6 +99,7 @@ class FavoritoSerializer(serializers.ModelSerializer):
 
 
 class CalificacionSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='id_usuario.username', read_only=True)
     class Meta:
         model = Calificacion
         fields = '__all__'

@@ -24,10 +24,26 @@ export function RecommendationModal({ product, onClose }: RecommendationModalPro
         id_alimento: product ? product.id_alimento : null,
         motivo: data.recommendation,
       });
+      toast.success("Recomendacion registrada correctamente");
     } catch (err: any) {
-      toast.error('Error al enviar la recomendación');
+      if (err.response) {
+        const { status, data: respData } = err.response;
+        if (status === 404) toast.error('Eror 404');
+        else if (status === 401) toast.error('Error 401');
+        else if (status === 400) {
+          if (typeof respData === 'object') {
+            const msgs = Object.values(respData).flat().join(' - ');
+            toast.error(msgs || 'Error de validación (400)');
+          } else {
+            toast.error(respData?.message || 'Solicitud inválida (400)');
+          }
+        } else {
+          toast.error(respData?.message || `Error del servidor (${status})`);
+        }
+      } else {
+        toast.error('Error de red o sin respuesta del servidor');
+      }
       console.error(err);
-      return;
     }
     onClose();
   })
