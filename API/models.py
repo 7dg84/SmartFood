@@ -251,3 +251,14 @@ class IntentoEncuesta(models.Model):
 
     def __str__(self):
         return f"Intento {self.id_intento} - {self.puntaje}"
+
+# Reseñas
+class Resena(models.Model):
+    id_resena = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+    id_usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='resenas')
+    comentario = models.TextField(blank=False, null=False)
+    valor = models.IntegerField(null=False, blank=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Resena {self.id_resena} - {self.valor}"

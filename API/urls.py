@@ -28,6 +28,7 @@ router.register(r'progresos', views.ProgresoActividadViewSet, basename='progreso
 router.register(r'trivias', views.TriviaViewSet, basename='trivias')
 router.register(r'preguntas', views.PreguntaViewSet, basename='preguntas')
 router.register(r'intentos', views.IntentoEncuestaViewSet, basename='intentos')
+router.register(r'resenas', views.ResenasViewSet, basename='resenas')
 
 urlpatterns = [
     path("v1/", include(router.urls)),

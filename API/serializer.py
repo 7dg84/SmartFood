@@ -186,3 +186,10 @@ class IntentoEncuestaSerializer(serializers.ModelSerializer):
         read_only_fields = ('id_intento',)
 
                 
+# reseñas serializer
+class ReseñaSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='id_usuario.username', read_only=True)
+    class Meta:
+        model = Resena
+        fields = '__all__'
+        read_only_fields = ('id_resena', 'fecha', 'id_usuario')

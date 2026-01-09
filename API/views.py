@@ -329,3 +329,21 @@ class IntentoEncuestaViewSet(viewsets.ModelViewSet):
     queryset = IntentoEncuesta.objects.all()
     serializer_class = IntentoEncuestaSerializer
     
+# Reseñas viewset 
+class ResenasViewSet(viewsets.ModelViewSet):
+    queryset = Resena.objects.all()
+    serializer_class = ReseñaSerializer
+
+    # Permiso de lectura a usuarios no autenticados
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        
+        if self.action in ['create']:
+            return [IsAuthenticated()]
+        
+        return [IsAuthenticated() and IsAdminUser()]
+
+    def perform_create(self, serializer):
+        # Associate the new resena with the authenticated user
+        serializer.save(id_usuario=self.request.user)

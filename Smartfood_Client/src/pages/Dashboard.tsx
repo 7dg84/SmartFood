@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/dashboard/DashboardLayout';
 import { DashboardLogin } from '../components/dashboard/DashboardLogin';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../context/AuthContext';
 
 export function Dashboard() {
-  const { isAuthenticated, login, logout } = useAuth({ storageKey: 'dashboardAuth' });
+  const { isLoggedIn, login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLoginSuccess = () => {
@@ -16,7 +16,7 @@ export function Dashboard() {
     navigate('/');
   };
 
-  if (!isAuthenticated) {
+  if (!isLoggedIn) {
     return (
       <DashboardLogin 
         onLoginSuccess={handleLoginSuccess}

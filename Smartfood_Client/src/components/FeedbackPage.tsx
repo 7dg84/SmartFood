@@ -1,27 +1,50 @@
 import { MessageCircle, List, Users, Star, Send } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner@2.0.3';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
+import { createResena, getResenas } from '../api/resenas';
+import { data } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export function FeedbackPage() {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [comments, setComments] = useState('');
+  const [resenas, setResenas] = useState([]);;
+  
+  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { isLoggedIn } = useAuth();
 
-  const handleSubmit = () => {
-    if (selectedRating === null) {
-      toast.warning('Selecciona una calificación', {
-        description: 'Por favor selecciona qué tan satisfecho estás',
-      });
+  const loadResenas = async () => {
+    try {
+      const res = await getResenas();
+      setResenas(res.data);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    }
+  }
+
+  useEffect(() => {
+    loadResenas();
+  }, []);
+
+  const handleSubmitForm = handleSubmit(async data => {
+    if (!isLoggedIn) {
+      toast.error('Debes iniciar sesión para enviar retroalimentación');
       return;
     }
-    
-    toast.success('¡Gracias por tu retroalimentación!', {
-      description: 'Tu opinión nos ayuda a mejorar',
-    });
-    
+
+    try {
+      await createResena(data);
+      toast.success('¡Gracias por tu retroalimentación!\nTu opinión nos ayuda a mejorar');
+    } catch (error) {
+      toast.error('Error al enviar la retroalimentación\nPor favor intenta de nuevo más tarde');
+      return;
+    }
+
     // Reset form
     setSelectedRating(null);
-    setComments('');
-  };
+    reset();
+    loadResenas();
+  });
 
   const ratingOptions = [
     { value: 5, label: 'Muy satisfecho', stars: 5 },
@@ -31,13 +54,25 @@ export function FeedbackPage() {
     { value: 1, label: 'Muy insatisfecho', stars: 1 },
   ];
 
-  const surveyResults = [
-    { label: 'Muy satisfecho', percentage: 45 },
-    { label: 'Satisfecho', percentage: 32 },
-    { label: 'Neutral', percentage: 15 },
-    { label: 'Insatisfecho', percentage: 6 },
-    { label: 'Muy insatisfecho', percentage: 2 },
-  ];
+  // Calcular resultados dinámicamente desde las reseñas
+  const calculateSurveyResults = () => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    
+    resenas.forEach(r => {
+      if (counts.hasOwnProperty(r.valor)) {
+        counts[r.valor as keyof typeof counts]++;
+      }
+    });
+
+    const total = resenas.length || 1;
+    
+    return ratingOptions.map(option => ({
+      label: option.label,
+      percentage: Math.round((counts[option.value as keyof typeof counts] / total) * 100)
+    }));
+  };
+
+  const surveyResults = calculateSurveyResults();
 
   const recentComments = [
     {
@@ -69,11 +104,10 @@ export function FeedbackPage() {
         {[...Array(5)].map((_, index) => (
           <Star
             key={index}
-            className={`w-5 h-5 ${
-              index < filled
-                ? 'fill-gray-800 text-gray-800'
-                : 'fill-gray-300 text-gray-300'
-            }`}
+            className={`w-5 h-5 ${index < filled
+              ? 'fill-gray-800 text-gray-800'
+              : 'fill-gray-300 text-gray-300'
+              }`}
           />
         ))}
       </div>
@@ -97,7 +131,7 @@ export function FeedbackPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-gray-500 text-sm mb-2">Respuestas Totales</p>
-                <p className="text-4xl">1247</p>
+                <p className="text-4xl">{resenas.length}</p>
               </div>
               <div className="text-gray-300">
                 <Users className="w-12 h-12" />
@@ -109,7 +143,12 @@ export function FeedbackPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-gray-500 text-sm mb-2">Satisfacción Promedio</p>
-                <p className="text-4xl">4.2/5</p>
+                <p className="text-4xl">
+                  {resenas.length > 0 
+                    ? (resenas.reduce((sum, r) => sum + r.valor, 0) / resenas.length).toFixed(1)
+                    : '0'
+                  }/5
+                </p>
               </div>
               <div className="text-gray-300">
                 <Star className="w-12 h-12 fill-gray-300" />
@@ -145,10 +184,8 @@ export function FeedbackPage() {
                     >
                       <input
                         type="radio"
-                        name="satisfaction"
+                        {...register('valor', { required: true })}
                         value={option.value}
-                        checked={selectedRating === option.value}
-                        onChange={() => setSelectedRating(option.value)}
                         className="w-4 h-4"
                       />
                       {renderStars(5, option.stars)}
@@ -156,6 +193,7 @@ export function FeedbackPage() {
                     </label>
                   ))}
                 </div>
+                {errors.valor && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio</span>}
               </div>
 
               {/* Comments */}
@@ -164,16 +202,18 @@ export function FeedbackPage() {
                   ¿Qué aspectos te gustaría que mejoráramos?
                 </p>
                 <textarea
-                  value={comments}
-                  onChange={(e) => setComments(e.target.value)}
+                  // value={comments}
+                  // onChange={(e) => setComments(e.target.value)}
+                  {...register('comentario', { required: true })}
                   placeholder="Comparte cualquier sugerencia o comentario que tengas..."
                   className="w-full border border-gray-300 rounded-lg p-4 min-h-32 resize-none focus:outline-none focus:ring-2 focus:ring-gray-300"
                 />
+                {errors.comentario && <span className="text-red-500 text-sm mt-1">Este campo es obligatorio</span>}
               </div>
 
               {/* Submit Button */}
               <button
-                onClick={handleSubmit}
+                onClick={handleSubmitForm}
                 className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Send className="w-5 h-5" />
@@ -214,12 +254,12 @@ export function FeedbackPage() {
               <h2 className="mb-6">Comentarios Recientes</h2>
 
               <div className="space-y-6">
-                {recentComments.map((comment) => (
-                  <div key={comment.id} className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
+                {resenas.map((comment) => (
+                  <div key={comment.id_resena} className="pb-6 border-b border-gray-200 last:border-b-0 last:pb-0">
                     <div className="flex items-start justify-between mb-2">
-                      <p>{comment.name}</p>
+                      <p>{comment.username}</p>
                       <div className="flex gap-1">
-                        {[...Array(5)].map((_, index) => (
+                        {[...Array(comment.valor)].map((_, index) => (
                           <Star
                             key={index}
                             className="w-4 h-4 fill-gray-800 text-gray-800"
@@ -228,9 +268,9 @@ export function FeedbackPage() {
                       </div>
                     </div>
                     <p className="text-sm text-gray-600 mb-2 leading-relaxed">
-                      {comment.comment}
+                      {comment.comentario}
                     </p>
-                    <p className="text-xs text-gray-400">{comment.date}</p>
+                    <p className="text-xs text-gray-400">{comment.fecha}</p>
                   </div>
                 ))}
               </div>
