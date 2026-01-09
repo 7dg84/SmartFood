@@ -15,10 +15,9 @@ export const getVideos = () => contentApi.get('/videos/');
 
 export const getVideo = (id) => contentApi.get(`/videos/${id}/`);
 
-export const getTrivias = (token) => {
-    const headers = token ? { Authorization: `Token ${token}` } : {};
-    return contentApi.get('trivia/',);
-};
+export const getTrivias = () => contentApi.get('/trivias/');
+export const getTrivia = (id) => contentApi.get(`/trivias/${id}/`);
+export const getPreguntasTrivia = (triviaId) => contentApi.get(`/preguntas/?id_trivia=${triviaId}`);
 
 export const getConsejos = () => contentApi.get('/consejos/');
 

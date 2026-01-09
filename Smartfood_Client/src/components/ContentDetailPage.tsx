@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
-import { getVideo } from '../api/content';
+import { toast } from 'react-hot-toast';
+import { getPreguntasTrivia, getTrivia, getVideo } from '../api/content';
 
 interface ContentDetailPageProps {
   contentId: string;
@@ -14,6 +14,8 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
   const [triviaAnswers, setTriviaAnswers] = useState<{ [key: number]: string }>({});
   const [videoData, setVideoData] = useState<any | null>(null);
   const [videoLoading, setVideoLoading] = useState(false);
+  const [triviaData, setTriviaData] = useState<any | null>(null);
+  const [triviaPreguntas, setTriviaPreguntas] = useState(false);
 
   // Simulación de datos de contenido
   const getContentData = () => {
@@ -164,23 +166,34 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
     },
   ];
 
-  const handleTriviaAnswer = (questionId: number, answer: string) => {
+  const handleTriviaAnswer = (questionId: string, answer: string) => {
     setTriviaAnswers({ ...triviaAnswers, [questionId]: answer });
   };
 
   const handleFinishTrivia = () => {
+    const totalQuestions = triviaPreguntas?.length || 0;
     const answeredCount = Object.keys(triviaAnswers).length;
-    if (answeredCount < triviaQuestions.length) {
-      toast.warning('Trivia incompleta', {
-        description: `Has respondido ${answeredCount} de ${triviaQuestions.length} preguntas`,
-      });
-    } else {
-      toast.success('¡Trivia completada!', {
-        description: 'Tu puntaje fue de: 0',
-      });
-      onBack();
+
+    if (answeredCount < totalQuestions) {
+      toast.error('Trivia incompleta\n' + `Has respondido ${answeredCount} de ${totalQuestions} preguntas`);
+      setShowExitConfirm(false);
+      return;
     }
+
+    // Calcular puntaje
+    let correctAnswers = 0;
+    triviaPreguntas?.forEach((q: any) => {
+      if (triviaAnswers[q.id_pregunta] === q.respuesta_correcta) {
+        correctAnswers++;
+      }
+    });
+
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+
+    toast.success('¡Trivia completada!\n' + ` Tu puntaje fue de: ${score}% (${correctAnswers}/${totalQuestions} correctas)`);
+
     setShowExitConfirm(false);
+    setTimeout(() => onBack(), 1500);
   };
 
   const triviaContent = (
@@ -191,10 +204,12 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
             <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
               <span>ℹ️</span>
             </div>
-            <h2>Alimentos Permitidos vs Prohibidos</h2>
+            <h2>{triviaData?.titulo}</h2>
+            <p>{triviaData?.descripcion}</p>
           </div>
           <button
-            onClick={() => setShowExitConfirm(true)}
+            // onClick={() => setShowExitConfirm(true)}
+            onClick={handleFinishTrivia}
             className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
           >
             Terminar
@@ -202,23 +217,28 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-          {triviaQuestions.map((q) => (
-            <div key={q.id}>
+          {triviaPreguntas && triviaPreguntas.map((q: any, index: number) => (
+            <div key={q.id_pregunta}>
               <p className="mb-3">
-                <strong>{q.id}.</strong> {q.question}
+                <strong>{index + 1}.</strong> {q.texto}
               </p>
               <div className="space-y-2">
-                {q.options.map((option, idx) => (
-                  <label key={idx} className="flex items-center gap-2 cursor-pointer">
+                {[
+                  { key: 'a', label: 'A)', value: q.opcion_a },
+                  { key: 'b', label: 'B)', value: q.opcion_b },
+                  { key: 'c', label: 'C)', value: q.opcion_c },
+                  { key: 'd', label: 'D)', value: q.opcion_d }
+                ].map((option) => (
+                  <label key={option.key} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
-                      name={`question-${q.id}`}
-                      value={option}
-                      checked={triviaAnswers[q.id] === option}
-                      onChange={() => handleTriviaAnswer(q.id, option)}
+                      name={`question-${q.id_pregunta}`}
+                      value={option.key}
+                      checked={triviaAnswers[q.id_pregunta] === option.key}
+                      onChange={() => handleTriviaAnswer(q.id_pregunta, option.key)}
                       className="w-4 h-4"
                     />
-                    <span className="text-sm">{option}</span>
+                    <span className="text-sm">{option.label} {option.value}</span>
                   </label>
                 ))}
               </div>
@@ -228,26 +248,50 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
       </div>
     </div>
   );
-  
-    useEffect(() => {
-      if (contentType !== 'videos') return;
-  
-      const fetchVideo = async () => {
-        try {
-          setVideoLoading(true);
-          const res = await getVideo(contentId);
-          setVideoData(res.data);
-        } catch (err: any) {
-          toast.error('No se pudieron cargar los videos');
-          console.error(err);
-        } finally {
-          setVideoLoading(false);
-        }
-      };
-  
-      fetchVideo();
-    }, [contentId, contentType]);
 
+  useEffect(() => {
+    if (contentType !== 'videos') return;
+
+    const fetchVideo = async () => {
+      try {
+        setVideoLoading(true);
+        const res = await getVideo(contentId);
+        setVideoData(res.data);
+      } catch (err: any) {
+        toast.error('No se pudieron cargar los videos');
+        console.error(err);
+      } finally {
+        setVideoLoading(false);
+      }
+    };
+
+    fetchVideo();
+  }, [contentId, contentType]);
+
+  // Cargar datos de la trivia y preguntas si contentType es 'trivias'
+  useEffect(() => {
+    if (contentType !== 'trivias') return;
+
+    const fetchTrivia = async () => {
+      try {
+        const triviaData = await getTrivia(contentId);
+        setTriviaData(triviaData.data);
+      } catch (err: any) {
+        toast.error('No se pudieron cargar los videos');
+        console.error(err);
+      }
+
+      try {
+        const preguntasData = await getPreguntasTrivia(contentId);
+        setTriviaPreguntas(preguntasData.data);
+      } catch (err: any) {
+        toast.error('No se pudieron cargar los preguntas de la trivia');
+        console.error(err);
+      }
+    };
+
+    fetchTrivia();
+  }, [contentId, contentType]);
   const contentData = getContentData();
 
   return (

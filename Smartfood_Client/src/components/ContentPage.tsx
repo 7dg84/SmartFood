@@ -183,8 +183,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
 
   const loadTrivias = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await getTrivias(token);
+      const res = await getTrivias();
       const items = (res.data || []).map((r: any, idx: number) => ({
         id: r.id_trivia || r.id || idx,
         title: r.titulo || `Trivia ${idx + 1}`,
@@ -347,7 +346,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
                 </div>
                 <h3 className="mb-2">{item.title}</h3>
                 <p className="text-gray-600 mb-6 text-sm">
-                  {item.descripcion}
+                  {item.description}
                 </p>
                 <div className="flex items-center justify-between mb-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">

@@ -322,6 +322,7 @@ class TriviaViewSet(viewsets.ModelViewSet):
 class PreguntaViewSet(viewsets.ModelViewSet):
     queryset = Pregunta.objects.all()
     serializer_class = PreguntaSerializer
+    filterset_fields = ['id_trivia']
 
 
 class IntentoEncuestaViewSet(viewsets.ModelViewSet):
