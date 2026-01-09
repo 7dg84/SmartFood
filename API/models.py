@@ -204,8 +204,9 @@ class Video(models.Model):
 
 class Consejo(models.Model):
     id_recurso = models.OneToOneField(Recursos, on_delete=models.CASCADE, primary_key=True, related_name='consejo')
-    categoria = models.CharField(max_length=50, blank=True, null=True)
-    texto = models.TextField(blank=True, null=True)
+    categoria = models.CharField(max_length=50, blank=False, null=False)
+    texto = models.TextField(blank=False, null=False)
+    icon = models.CharField(max_length=255, blank=False, null=False)
 
     def __str__(self):
         return f"Consejo {self.id_recurso_id}"

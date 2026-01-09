@@ -153,9 +153,9 @@ export function CatalogPage({ onProductClick }: CatalogPageProps) {
               >
                 <option value="">Todos las categorías</option>
                 <option value="FRUTAS">Frutas</option>
-                <option value="bebidas">Bebidas</option>
-                <option value="lacteos">Lácteos</option>
-                <option value="snacks">Snacks</option>
+                <option value="BEBIDAS">Bebidas</option>
+                <option value="LACTEOS">Lácteos</option>
+                <option value="SNACKS">Snacks</option>
               </select>
             </div>
 

@@ -1,5 +1,7 @@
 import { FileText, PlayCircle, HelpCircle, Lightbulb, Clock, Eye } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getInfografias, getVideos, getTrivias, getConsejos, downloadInfografiaFile } from '../api/content';
+import { toast } from 'react-hot-toast';
 
 type ContentType = 'infografias' | 'videos' | 'trivias' | 'consejos';
 
@@ -20,56 +22,14 @@ interface TipItem {
 }
 
 interface ContentPageProps {
-  onViewContent: (contentId: number, contentType: 'infografias' | 'videos' | 'trivias') => void;
+  onViewContent: (contentId: string, contentType: 'infografias' | 'videos' | 'trivias') => void;
 }
 
 export function ContentPage({ onViewContent }: ContentPageProps) {
   const [activeTab, setActiveTab] = useState<ContentType>('infografias');
 
-  const infografias: ContentItem[] = [
-    {
-      id: 1,
-      title: 'Pirámide Alimentaria Escolar',
-      description: 'Guía visual de los grupos alimentarios recomendados',
-      duration: '5 min',
-      viewed: true,
-    },
-    {
-      id: 2,
-      title: 'Beneficios de las Frutas y Verduras',
-      description: 'Infografía colorida sobre vitaminas y minerales',
-      duration: '3 min',
-      viewed: true,
-    },
-    {
-      id: 3,
-      title: 'Hidratación Saludable',
-      description: 'Importancia del agua y bebidas naturales',
-      duration: '2 min',
-      viewed: false,
-    },
-    {
-      id: 4,
-      title: 'Lectura de Etiquetas Nutricionales',
-      description: 'Cómo interpretar la información nutricional',
-      duration: '4 min',
-      viewed: false,
-    },
-    {
-      id: 5,
-      title: 'Porciones Adecuadas por Edad',
-      description: 'Tamaños de porción recomendados para niños',
-      duration: '3 min',
-      viewed: true,
-    },
-    {
-      id: 6,
-      title: 'Desayuno Nutritivo',
-      description: 'Ideas para un desayuno balanceado y energético',
-      duration: '4 min',
-      viewed: false,
-    },
-  ];
+  const infografias: ContentItem[] = [];
+  const [infografiasData, setInfografiasData] = useState<ContentItem[]>([]);
 
   const videos: ContentItem[] = [
     {
@@ -94,6 +54,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
       viewed: false,
     },
   ];
+  const [videosData, setVideosData] = useState<ContentItem[]>([]);
 
   const trivias: ContentItem[] = [
     {
@@ -118,6 +79,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
       viewed: false,
     },
   ];
+  const [triviasData, setTriviasData] = useState<ContentItem[]>([]);
 
   const consejos: TipItem[] = [
     {
@@ -163,6 +125,123 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
       icon: '💧',
     },
   ];
+  const [consejosData, setConsejosData] = useState<TipItem[]>([]);
+
+  // Cargar los recursos
+  const loadInfografias = async () => {
+    try {
+      const res = await getInfografias();
+      // normalize response to ContentItem shape
+      const items = (res.data || []).map((r: any, idx: number) => ({
+        id: r.id_recurso || r.id || idx,
+        title: r.titulo || r.id_recurso || `Infografia ${idx + 1}`,
+        description: r.descripcion || '',
+        duration: r.duracion || '-',
+        // imagen: r.image || '',
+        viewed: false,
+      }));
+
+      setInfografiasData(items);
+    } catch (err: any) {
+      if (err.response) {
+        const { status, data: respData } = err.response;
+        if (status === 404) toast.error('Infografías no encontradas (404)');
+        else if (status === 401) toast.error('No autorizado (401)');
+        else if (status === 400) {
+          if (typeof respData === 'object') {
+            const msgs = Object.values(respData).flat().join(' - ');
+            toast.error(msgs || 'Error de validación (400)');
+          } else {
+            toast.error(respData?.message || 'Solicitud inválida (400)');
+          }
+        } else {
+          toast.error(respData?.message || `Error del servidor (${status})`);
+        }
+      } else {
+        toast.error('Error de red o sin respuesta del servidor');
+      }
+      console.error(err);
+    }
+  };
+
+  const loadVideos = async () => {
+    try {
+      const res = await getVideos();
+      const items = (res.data || []).map((r: any, idx: number) => ({
+        id: r.id_recurso || r.id || idx,
+        title: r.titulo || `Video ${idx + 1}`,
+        description: r.descripcion || '',
+        duration: r.duracion || '-',
+        viewed: false,
+      }));
+      setVideosData(items);
+    } catch (err: any) {
+      toast.error('No se pudieron cargar los videos');
+      console.error(err);
+    }
+  };
+
+  const loadTrivias = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await getTrivias(token);
+      const items = (res.data || []).map((r: any, idx: number) => ({
+        id: r.id_trivia || r.id || idx,
+        title: r.titulo || `Trivia ${idx + 1}`,
+        description: r.descripcion || '',
+        duration: r.duracion || '-',
+        viewed: false,
+      }));
+      setTriviasData(items);
+    } catch (err: any) {
+      toast.error('No se pudieron cargar las trivias');
+      console.error(err);
+    }
+  };
+
+  const loadConsejos = async () => {
+    try {
+      const res = await getConsejos();
+      const items = (res.data || []).map((r: any, idx: number) => ({
+        id: r.id_recurso || r.id || idx,
+        title: r.titulo || `Consejo ${idx + 1}`,
+        tag: r.categoria || 'general',
+        description: r.descripcion || '',
+        texto: r.texto || '',
+        icon: r.icon || '💡',
+      }));
+      setConsejosData(items);
+    } catch (err: any) {
+      toast.error('No se pudieron cargar los consejos');
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadInfografias();
+    loadVideos();
+    loadTrivias();
+    loadConsejos();
+  }, []);
+
+  const handleView = async (content: {id: string}, contentType: ContentType) => {
+    if (contentType === 'infografias') {
+      try {
+        const res = await downloadInfografiaFile(content.id);
+        const blob = new Blob([res.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } catch (err: any) {
+        if (err.response && err.response.status === 404) toast.error('Archivo no encontrado (404)');
+        else toast.error('Error al descargar la infografía');
+        console.error(err);
+      }
+      return;
+    }
+    // For videos and trivias, delegate to parent
+    onViewContent(content.id, contentType === 'videos' ? 'videos' : 'trivias');
+    // onViewContent(contentId, activeTab)
+  };
 
   const getCurrentContent = () => {
     switch (activeTab) {
@@ -218,44 +297,40 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
         <div className="flex gap-4 mb-8 border-b border-gray-200">
           <button
             onClick={() => setActiveTab('infografias')}
-            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${
-              activeTab === 'infografias'
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${activeTab === 'infografias'
                 ? 'border-gray-800 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             <FileText className="w-5 h-5" />
             Infografías
           </button>
           <button
             onClick={() => setActiveTab('videos')}
-            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${
-              activeTab === 'videos'
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${activeTab === 'videos'
                 ? 'border-gray-800 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             <PlayCircle className="w-5 h-5" />
             Videos
           </button>
           <button
             onClick={() => setActiveTab('trivias')}
-            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${
-              activeTab === 'trivias'
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${activeTab === 'trivias'
                 ? 'border-gray-800 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             <HelpCircle className="w-5 h-5" />
             Trivias
           </button>
           <button
             onClick={() => setActiveTab('consejos')}
-            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${
-              activeTab === 'consejos'
+            className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${activeTab === 'consejos'
                 ? 'border-gray-800 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
+              }`}
           >
             <Lightbulb className="w-5 h-5" />
             Consejos
@@ -265,14 +340,14 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
         {/* Content Grid */}
         {activeTab !== 'consejos' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {getCurrentContent().map((item) => (
+            {(activeTab === 'infografias' ? infografiasData : activeTab === 'videos' ? videosData : triviasData).map((item) => (
               <div key={item.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
                 <div className="mb-4">
                   {getIcon()}
                 </div>
                 <h3 className="mb-2">{item.title}</h3>
                 <p className="text-gray-600 mb-6 text-sm">
-                  {item.description}
+                  {item.descripcion}
                 </p>
                 <div className="flex items-center justify-between mb-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
@@ -286,7 +361,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
                 </div>
                 <button
                   className="w-full px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                  onClick={() => onViewContent(item.id, activeTab)}
+                  onClick={() => handleView(item, activeTab)}
                 >
                   {getButtonText()}
                 </button>
@@ -295,7 +370,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {consejos.map((consejo) => (
+            {consejosData.map((consejo) => (
               <div key={consejo.id} className="bg-white rounded-lg border border-gray-200 p-8 hover:shadow-lg transition-shadow">
                 <div className="flex gap-6">
                   <div className="text-5xl flex-shrink-0">
@@ -307,7 +382,7 @@ export function ContentPage({ onViewContent }: ContentPageProps) {
                       {consejo.tag}
                     </div>
                     <p className="text-gray-600">
-                      {consejo.description}
+                      {consejo.texto}
                     </p>
                   </div>
                 </div>

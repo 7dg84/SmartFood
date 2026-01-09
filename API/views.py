@@ -11,6 +11,9 @@ from django.db.models import Exists, OuterRef, Value, BooleanField
 from .serializer import *
 from .models import *
 from rest_framework.authtoken.models import Token
+from django.http import FileResponse, Http404
+from django.conf import settings
+import os
 
 from django.contrib.auth.models import User
 
@@ -260,12 +263,40 @@ class SugerenciaViewSet(viewsets.ModelViewSet):
 
 class RecursosViewSet(viewsets.ModelViewSet):
     queryset = Recursos.objects.all()
+    filterset_fields = ['tipo']
     serializer_class = RecursosSerializer
 
 
 class InfografiaViewSet(viewsets.ModelViewSet):
     queryset = Infografia.objects.all()
     serializer_class = InfografiaSerializer
+
+
+@api_view(['GET'])
+def infografia_file(request, pk):
+    """Serve the infografia PDF file referenced in `Infografia.imagen` field.
+
+    Expects `imagen` to be a filesystem path relative to `settings.MEDIA_ROOT` or an absolute path.
+    Returns a `FileResponse` with content_type 'application/pdf'."""
+    try:
+        inf = get_object_or_404(Infografia, pk=pk)
+        file_path = inf.imagen
+        if not file_path:
+            raise Http404("No file configured for this infografia")
+
+        # If the path is relative, resolve against MEDIA_ROOT
+        if not os.path.isabs(file_path):
+            file_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+        if not os.path.exists(file_path):
+            raise Http404("File not found")
+
+        # Serve as PDF. If your files are images or other types, adjust content_type accordingly.
+        return FileResponse(open(file_path, 'rb'), content_type='application/pdf')
+    except Http404:
+        raise
+    except Exception as e:
+        raise Http404("Error serving file")
 
 
 class VideoViewSet(viewsets.ModelViewSet):

@@ -128,6 +128,9 @@ class RecursosSerializer(serializers.ModelSerializer):
 
 
 class InfografiaSerializer(serializers.ModelSerializer):
+    titulo = serializers.CharField(source='id_recurso.titulo', read_only=True)
+    tipo = serializers.CharField(source='id_recurso.tipo', read_only=True)
+    descripcion = serializers.CharField(source='id_recurso.descripcion', read_only=True)
     class Meta:
         model = Infografia
         fields = '__all__'
@@ -135,6 +138,9 @@ class InfografiaSerializer(serializers.ModelSerializer):
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    titulo = serializers.CharField(source='id_recurso.titulo', read_only=True)
+    tipo = serializers.CharField(source='id_recurso.tipo', read_only=True)
+    descripcion = serializers.CharField(source='id_recurso.descripcion', read_only=True)
     class Meta:
         model = Video
         fields = '__all__'
@@ -142,6 +148,9 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class ConsejoSerializer(serializers.ModelSerializer):
+    titulo = serializers.CharField(source='id_recurso.titulo', read_only=True)
+    tipo = serializers.CharField(source='id_recurso.tipo', read_only=True)
+    descripcion = serializers.CharField(source='id_recurso.descripcion', read_only=True)
     class Meta:
         model = Consejo
         fields = '__all__'
@@ -156,6 +165,7 @@ class ProgresoActividadSerializer(serializers.ModelSerializer):
 
 
 class TriviaSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Trivia
         fields = '__all__'

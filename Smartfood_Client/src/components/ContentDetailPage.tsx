@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
+import { getVideo } from '../api/content';
 
 interface ContentDetailPageProps {
-  contentId: number;
-  contentType: 'infografias' | 'videos' | 'trivias';
+  contentId: string;
+  contentType: 'infografias' | 'videos' | 'trivias'
   onBack: () => void;
 }
 
 export function ContentDetailPage({ contentId, contentType, onBack }: ContentDetailPageProps) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [triviaAnswers, setTriviaAnswers] = useState<{ [key: number]: string }>({});
+  const [videoData, setVideoData] = useState<any | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
 
   // Simulación de datos de contenido
   const getContentData = () => {
@@ -21,8 +24,10 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
       };
     } else if (contentType === 'videos') {
       return {
-        title: 'Cómo preparar loncheras saludables',
-        content: videoContent,
+        title: videoData?.titulo || 'Video',
+        content: videoLoading
+          ? <div className="text-center py-10 text-gray-600">Cargando video...</div>
+          : videoContent(videoData || {}),
       };
     } else {
       return {
@@ -39,7 +44,7 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
           <h2 className="text-3xl mb-4">Pirámide Alimentaria Escolar</h2>
           <p className="text-gray-600">Guía visual de los grupos alimentarios recomendados</p>
         </div>
-        
+
         <div className="space-y-6 bg-white rounded-lg p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border-l-4 border-emerald-500 pl-4">
@@ -48,21 +53,21 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
                 Consume al menos 5 porciones al día. Son ricas en vitaminas, minerales y fibra.
               </p>
             </div>
-            
+
             <div className="border-l-4 border-blue-500 pl-4">
               <h3 className="mb-2 text-blue-700">🌾 Cereales y Granos</h3>
               <p className="text-gray-600 text-sm">
                 Prefiere los integrales. Son la principal fuente de energía.
               </p>
             </div>
-            
+
             <div className="border-l-4 border-orange-500 pl-4">
               <h3 className="mb-2 text-orange-700">🥛 Lácteos</h3>
               <p className="text-gray-600 text-sm">
                 3 porciones diarias. Importantes para huesos y dientes fuertes.
               </p>
             </div>
-            
+
             <div className="border-l-4 border-red-500 pl-4">
               <h3 className="mb-2 text-red-700">🍗 Proteínas</h3>
               <p className="text-gray-600 text-sm">
@@ -70,7 +75,7 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
               </p>
             </div>
           </div>
-          
+
           <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded">
             <p className="text-sm">
               <strong>💡 Consejo:</strong> Limita el consumo de azúcares y grasas saturadas. Prefiere agua natural sobre bebidas azucaradas.
@@ -80,22 +85,25 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
       </div>
     </div>
   );
-
-  const videoContent = (
+  const videoContent = (video: any) => (
     <div className="max-w-4xl mx-auto">
       <div className="bg-black rounded-lg overflow-hidden mb-6" style={{ aspectRatio: '16/9' }}>
         <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-white border-b-8 border-b-transparent ml-1"></div>
-            </div>
-            <p className="text-gray-300">Video: Cómo preparar loncheras saludables</p>
-            <p className="text-sm text-gray-400 mt-2">Duración: 8 minutos</p>
-          </div>
+          <iframe
+            width="100%"
+            height="100%"
+            src={
+              video.url || 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            }
+            title="Video de loncheras saludables"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
       </div>
-      
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
+
+      {/* <div className="bg-white rounded-lg p-6 border border-gray-200">
         <h3 className="mb-4">Puntos clave del video</h3>
         <ul className="space-y-3 text-gray-600">
           <li className="flex gap-3">
@@ -119,7 +127,7 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
             <span>Evita productos ultraprocesados y bebidas azucaradas</span>
           </li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 
@@ -220,6 +228,25 @@ export function ContentDetailPage({ contentId, contentType, onBack }: ContentDet
       </div>
     </div>
   );
+  
+    useEffect(() => {
+      if (contentType !== 'videos') return;
+  
+      const fetchVideo = async () => {
+        try {
+          setVideoLoading(true);
+          const res = await getVideo(contentId);
+          setVideoData(res.data);
+        } catch (err: any) {
+          toast.error('No se pudieron cargar los videos');
+          console.error(err);
+        } finally {
+          setVideoLoading(false);
+        }
+      };
+  
+      fetchVideo();
+    }, [contentId, contentType]);
 
   const contentData = getContentData();
 

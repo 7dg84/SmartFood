@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include, re_path
 from rest_framework.documentation import include_docs_urls
 from rest_framework import routers
@@ -34,4 +36,9 @@ urlpatterns = [
     re_path("v1/register/", views.register, name="register"),
     re_path("v1/logout/", views.logout, name="logout"),
     re_path("v1/recover/", views.recover, name="recover"),
+    # endpoint to download infografia file
+    re_path(r"v1/infografia/(?P<pk>[^/]+)/file/", views.infografia_file, name='infografia-file'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

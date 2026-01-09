@@ -13,7 +13,7 @@ export function ContenidoDetalle() {
 
   return (
     <ContentDetailPage 
-      contentId={parseInt(id || '1')}
+      contentId={id || ''}
       contentType={contentType}
       onBack={handleBack}
     />
