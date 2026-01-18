@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-)t6b9ndxfwb!)ivjci8d&!cbqg2f%dv=*!&jl_#z1jb#6+@9_t
 # SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-DEBUG = bool(os.environ.get("DEBUG", default=0))
+DEBUG = True
+# DEBUG = bool(os.environ.get("DEBUG", default=0))
  
 # ALLOWED_HOSTS = ["app.smart-food.cc", "npm", "api.smart-food.cc"]
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS","app.smart-food.cc,npm,api.smart-food.cc,127.0.0.1").split(",")
@@ -95,7 +95,7 @@ DATABASES = {
          'NAME': os.getenv('DATABASE_NAME', 'smartfood'),
          'USER': os.getenv('DATABASE_USERNAME', 'myuser'),
          'PASSWORD': os.getenv('DATABASE_PASSWORD', 'mysecretpassword'),
-         'HOST': os.getenv('DATABASE_HOST', 'db'),
+         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
          'PORT': os.getenv('DATABASE_PORT', 5432),
      }
 }
@@ -140,6 +140,7 @@ STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:80",
+    "http://localhost:5174",
     "http://api.smart-food.cc",
     "https://app.smart-food.cc",
     "http://npm"

@@ -72,6 +72,7 @@ class AlimentoSerializer(serializers.ModelSerializer):
 #         fields = '__all__'
 #         read_only_fields = ('id_usuario',)
         
+# Serializer para el login de los usuarios
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())]
@@ -79,10 +80,27 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password')
-        read_only_fields = ('id', 'password', 'email')
+        fields = ('id', 'username', 'email',)
+        read_only_fields = ('id', 'email', )
         
+# Serializer para el login de el dashboard
+class AdminSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    rol = serializers.SerializerMethodField()
 
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'rol')
+        read_only_fields = ('id', 'email', )
+    
+    def get_rol(self, obj):
+        if obj.groups.filter(name='administrador').exists():
+            return 'administrador'
+        if obj.groups.filter(name='personal_cafeteria').exists():
+            return 'cafeteria'
+        return None
 
 class ConsultaSerializer(serializers.ModelSerializer):
     class Meta:

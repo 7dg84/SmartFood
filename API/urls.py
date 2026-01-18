@@ -33,12 +33,16 @@ router.register(r'resenas', views.ResenasViewSet, basename='resenas')
 urlpatterns = [
     path("v1/", include(router.urls)),
     path('docs/', include_docs_urls(title='SmartFood API')),
+    # Autenticacion de usuarios
     re_path("v1/login/", views.login, name="login"),
     re_path("v1/register/", views.register, name="register"),
     re_path("v1/logout/", views.logout, name="logout"),
     re_path("v1/recover/", views.recover, name="recover"),
     # endpoint to download infografia file
     re_path(r"v1/infografia/(?P<pk>[^/]+)/file/", views.infografia_file, name='infografia-file'),
+    
+    # Autenticacion de administradores de dashboard
+    re_path("v1/admin/login/", views.admin_login, name="admin-login"),
 ]
 
 if settings.DEBUG:

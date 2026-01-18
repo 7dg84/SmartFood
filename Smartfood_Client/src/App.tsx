@@ -9,8 +9,6 @@ import {
   ContenidoDetalle,
   Feedback,
   Estadisticas,
-  Dashboard,
-  Tienda,
   Estado,
   Mantenimiento,
   NotFound,
@@ -34,8 +32,6 @@ export default function App() {
           <Route path="/estadisticas" element={<Layout><Estadisticas /></Layout>} />
 
           {/* Routes without Layout (Full-screen pages) */}
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tienda" element={<Tienda />} />
           <Route path="/estado" element={<Estado />} />
           <Route path="/mantenimiento" element={<Mantenimiento />} />
 

@@ -125,17 +125,22 @@ class AlimentoViewSet(viewsets.ModelViewSet):
 # Login de usuarios
 @api_view(['POST'])
 def login(request):
-    # Lógica de autenticación aquí
-    
+    # Lógica de autenticación
+    # Campos requeridos: email, password
+    if 'email' not in request.data or 'password' not in request.data:
+        return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    # buscar el usuario por email
     user = get_object_or_404(User, email=request.data['email'])
     
+    # Validar la contraseña
     if not user.check_password(request.data['password']):
         return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
     
+    # Generar o recuperar el token de autenticación
     token, created = Token.objects.get_or_create(user=user)
     serilized = UserSerializer(user)
     
-    return Response({'token': token.key, 'user': serilized.data}, status=status.HTTP_200_OK)
+    return Response({'token': token.key, 'user': serilized.data, }, status=status.HTTP_200_OK)
 
 # Registro de usuarios
 @api_view(['POST'])
@@ -179,6 +184,30 @@ def recover(request):
     
     
     return Response({'email': user.email}, status=status.HTTP_200_OK)
+
+# Login de administradores del dashboard
+@api_view(['POST'])
+def admin_login(request):
+    # Lógica de autenticación
+    # Campos requeridos: email, password
+    if 'email' not in request.data or 'password' not in request.data:
+        return Response({'error': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    # buscar el usuario por email
+    user = get_object_or_404(User, email=request.data['email'])
+    
+    # Validar la contraseña
+    if not user.check_password(request.data['password']):
+        return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    # Verificar si el usuario es administrador
+    if not user.groups.filter(name='administrador').exists():
+        return Response({'error': 'User is not an administrator'}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Generar o recuperar el token de autenticación
+    token, created = Token.objects.get_or_create(user=user)
+    serilized = AdminSerializer(user)
+    
+    return Response({'token': token.key, 'user': serilized.data, }, status=status.HTTP_200_OK)
 
 class ConsultaViewSet(viewsets.ModelViewSet):
     queryset = Consulta.objects.all()

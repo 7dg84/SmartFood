@@ -7,10 +7,6 @@ export { ContenidoDetalle } from './ContenidoDetalle';
 export { Feedback } from './Feedback';
 export { Estadisticas } from './Estadisticas';
 
-// Protected pages
-export { Dashboard } from './Dashboard';
-export { Tienda } from './Tienda';
-
 // System pages
 export { Estado } from './Estado';
 export { Mantenimiento } from './Mantenimiento';
